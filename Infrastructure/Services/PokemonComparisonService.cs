@@ -82,11 +82,11 @@ namespace PokemonBank.Api.Infrastructure.Services
         public static void LogComparison(PokemonEntity original, PokemonEntity received, string context = "")
         {
             var comparison = Compare(original, received);
-            
+
             Console.WriteLine($"\n=== POKEMON COMPARISON {context} ===");
             Console.WriteLine($"Original: {PkHexStringService.GetSpeciesName(original.SpeciesId)} (ID: {original.Id})");
             Console.WriteLine($"Received: {PkHexStringService.GetSpeciesName(received.SpeciesId)} (ID: {received.Id})");
-            
+
             if (comparison.AreIdentical)
             {
                 Console.WriteLine("✅ Pokemon are identical!");

@@ -1,16 +1,17 @@
 # Pokémon Bank (Personal)
 
-A local-first **Pokémon bank** to import, store, and browse Pokémon from `.pk*` files across **all generations** (Gen 1 → Gen 9, plus supported spin-offs). Uses **PKHeX.Core** for parsing, **SQLite** for storage, and exposes a clean **REST API**. Designed to be extended with a React/TypeScript UI.
+A local-first **Pokémon bank** to import, store, compare, and browse Pokémon from `.pk*` files across **all generations** (Gen 1 → Gen 9, plus supported spin-offs). Uses **PKHeX.Core** for parsing and name resolution, **SQLite** for storage, and exposes a clean **REST API**. Designed to be extended with a React/TypeScript UI.
 
 ---
 
 ## TL;DR
 
-- **Import** one or many `.pk*` files (e.g., `.pk9`) and keep the **original file**.
-- **Store** full metadata locally (species, forms, OT/TID/SID, IV/EV, moves, ball, language, origin, Tera Type, etc.).
-- **Export** a **Pokémon Showdown** set.
+- **Import** one or many `.pk*` files (e.g., `.pk9`) and keep the **original file** (unmodified, for full fidelity).
+- **Store** full metadata locally (species, forms, OT/TID/SID, IV/EV, moves, ball, language, origin, Tera Type, ribbons, marks, etc.).
+- **Compare** any two Pokémon and see all differences (e.g., after trading or editing).
+- **Export** a **Pokémon Showdown** set (with names from PKHeX.Core).
 - **Stack:** .NET 9 + ASP.NET Core + EF Core + SQLite + PKHeX.Core + Swagger.
-- **Status:** MVP API bootstrapped; parser wired to PKHeX.Core; import & Showdown export endpoints in place.
+- **Status:** Full PK9 support, PKHeX.Core GameStrings migration, original file preservation, Pokémon comparison endpoint, and clean codebase (no custom enums).
 
 ---
 
@@ -40,7 +41,6 @@ dotnet build
 
 ```bash
 dotnet tool install --global dotnet-ef
-dotnet ef migrations add Initial
 dotnet ef database update
 ```
 
@@ -84,33 +84,35 @@ http://localhost:5111/swagger
 ## Project structure
 
 ```
-pokemon-bank/
-├── PokemonBank.Api/
-│   ├── Controllers/
-│   ├── Data/
-│   ├── Models/
-│   ├── Parsers/
+PokemonBank.Api/
+├── Contracts/           # DTOs
+├── Domain/              # Entities (PokemonEntity, StatsEntity, etc.)
+├── Endpoints/           # Minimal API endpoints (Import, Health, Pokemon, Compare)
+├── Extensions/          # WebApplication extensions
+├── Infrastructure/      # DbContext, services, PKHeX integration, helpers
+│   ├── AppDbContext.cs
 │   ├── Services/
-│   ├── Properties/
-│   ├── appsettings.json
-│   ├── Program.cs
-│   ├── PokemonBank.Api.csproj
-├── PokemonBank.sln
-└── README.md
+│   │   ├── FileStorageService.cs
+│   │   ├── PkhexCoreParser.cs
+│   │   ├── PkHexStringService.cs
+│   │   └── PokemonComparisonService.cs
+│   └── Mappings/
+├── Migrations/          # EF Core migrations
+├── Properties/          # Launch settings
+├── ReferenceData/       # (Removed) Old enums/data, now replaced by PKHeX.Core
+├── Storage/             # SQLite DB and file vault
+├── appsettings.json
+├── Program.cs
+├── PokemonBank.Api.csproj
+├── README.md
 ```
 
-- `PokemonBank.Api/`: Main ASP.NET Core Web API project.
-  - `Controllers/`: API endpoints (e.g., Import, Showdown export).
-  - `Data/`: EF Core DbContext, migrations, and database models.
-  - `Models/`: DTOs and API models.
-  - `Parsers/`: Pokémon file parsing logic (PKHeX.Core integration).
-  - `Services/`: Business logic, file storage, helpers.
-  - `Properties/`: Launch settings and configuration.
-  - `appsettings.json`: App configuration.
-  - `Program.cs`: Entry point.
-- `PokemonBank.Core/`: (Optional) Shared domain logic and models.
-- `PokemonBank.sln`: Solution file.
-- `README.md`: This documentation.
+- `Contracts/`: DTOs for API requests/responses.
+- `Domain/`: Core entities for Pokémon, stats, moves, etc.
+- `Endpoints/`: Minimal API endpoints (import, get, compare, health).
+- `Infrastructure/Services/`: Business logic, file storage, PKHeX integration, helpers (including name resolution and comparison).
+- `ReferenceData/`: **Removed**. All enums and static data now use PKHeX.Core GameStrings.
+- `Storage/`: SQLite DB and original file vault.
 
 ---
 
@@ -119,10 +121,10 @@ pokemon-bank/
 - **Backend:**
 
   - .NET 9
-  - ASP.NET Core Web API
+  - ASP.NET Core Minimal API
   - Entity Framework Core
   - SQLite (local storage)
-  - PKHeX.Core (Pokémon parsing)
+  - PKHeX.Core (Pokémon parsing, name resolution, GameStrings)
   - Swashbuckle / Swagger UI
 
 - **Other:**
@@ -130,6 +132,8 @@ pokemon-bank/
   - HealthChecks
   - Modular endpoint & service structure
   - Multi-generation compatibility
+  - Original file preservation (vault)
+  - Pokémon comparison tooling
 
 ---
 
@@ -141,14 +145,15 @@ Create a **personal Pokémon bank** that:
 
 - Imports Pokémon from `.pk*` files obtained legally.
 - Displays detailed information in a user-friendly format.
-- Keeps a secure local record of the collection.
+- Keeps a secure local record of the collection (including original files).
 
 ### Technical
 
 - Full compatibility with `.pk*` from Gen 1 to Gen 9 + supported spin-offs.
-- Local storage of Pokémon data, metadata & original file.
-- Advanced parsing with PKHeX.Core.
-- Showdown export.
+- Local storage of Pokémon data, metadata & original file (unmodified).
+- Advanced parsing and name resolution with PKHeX.Core (no custom enums).
+- Showdown export (with accurate names).
+- Pokémon comparison endpoint for difference analysis.
 - Modular architecture for future UI integration.
 - REST API with Swagger documentation.
 
@@ -156,15 +161,13 @@ Create a **personal Pokémon bank** that:
 
 ## Current progress
 
-- Project structure: .NET 9 + ASP.NET Core + EF Core.
-- SQLite database with initial migrations.
-- Services:
-  - `IPkParser` / `PkhexCoreParser` for parsing.
-  - `IFileStorage` for file saving.
-- Endpoints:
-  - `/health` → HealthCheck
-  - `/import` (POST) → Import `.pk*`
-  - `/pokemon/{id}/showdown` (GET) → Export Showdown set
+- Full PK9 support: All fields parsed and stored, including new Gen 9 data.
+- PKHeX.Core GameStrings: All names (species, moves, items, etc.) resolved via PKHeX.Core, no custom enums.
+- Original file preservation: Every import stores the unmodified file in the vault.
+- Pokémon comparison: `/pokemon/compare/{id1}/{id2}` endpoint to analyze all differences between two Pokémon (e.g., after trading or editing).
+- Showdown export: `/pokemon/{id}/showdown` (GET) returns a Showdown set with accurate names.
+- Clean codebase: ReferenceData and all custom enums removed.
+- Minimal API endpoints: Import, get, compare, health.
 - Swagger UI for testing & docs.
 - Launch profiles for HTTP + HTTPS.
 
@@ -172,8 +175,7 @@ Create a **personal Pokémon bank** that:
 
 ## Next steps
 
-- [ ] Add name resolution (species, balls, locations) via catalogs.
-- [ ] Support ribbons, marks, contest stats.
+- [ ] Support ribbons, marks, contest stats (in progress).
 - [ ] Return sprites/images in API responses.
 - [ ] Implement advanced filtering/search.
 - [ ] Build React/TypeScript UI.

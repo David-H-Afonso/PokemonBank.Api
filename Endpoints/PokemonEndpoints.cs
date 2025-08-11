@@ -141,12 +141,12 @@ namespace PokemonBank.Api.Endpoints
             {
                 var p1 = await db.Pokemon.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id1);
                 var p2 = await db.Pokemon.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id2);
-                
-                if (p1 == null || p2 == null) 
+
+                if (p1 == null || p2 == null)
                     return Results.NotFound("One or both Pokemon not found");
-                
+
                 var comparison = PokemonComparisonService.Compare(p1, p2);
-                
+
                 return Results.Ok(new
                 {
                     Pokemon1 = new { Id = p1.Id, Species = PkHexStringService.GetSpeciesName(p1.SpeciesId), Nickname = p1.Nickname },
