@@ -1,0 +1,1 @@
+// Aquí puedes dejar métodos de extensión generales para el pipeline, configuración, etc.

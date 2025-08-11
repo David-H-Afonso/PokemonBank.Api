@@ -1,0 +1,3 @@
+- File exported is not the same when imported back via the game
+- TID y SID no son correctos en las exportaciones de showdown ni en los detalles del pokemon
+-
