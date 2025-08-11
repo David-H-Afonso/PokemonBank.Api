@@ -3,40 +3,133 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PokemonBank.Api.Contracts
 {
+    /// <summary>
+    /// Result of importing a PKM file
+    /// </summary>
     public record ImportResultDto
     {
+        /// <summary>
+        /// Name of the uploaded file
+        /// </summary>
         public required string FileName { get; init; }
-        public required string Status { get; init; } // imported | duplicate | error
+
+        /// <summary>
+        /// Import status: "imported", "duplicate", or "error"
+        /// </summary>
+        public required string Status { get; init; }
+
+        /// <summary>
+        /// ID of the created Pokémon (only if Status is "imported")
+        /// </summary>
         public int? PokemonId { get; init; }
+
+        /// <summary>
+        /// Error message (only if Status is "error")
+        /// </summary>
         public string? Message { get; init; }
     }
 
+    /// <summary>
+    /// Query parameters for filtering the Pokémon list
+    /// </summary>
     public record PokemonQuery
     {
+        /// <summary>
+        /// Text search in nickname or original trainer name
+        /// </summary>
         public string? Search { get; init; }
+
+        /// <summary>
+        /// Filter by species ID (e.g., 1 = Bulbasaur)
+        /// </summary>
         public int? SpeciesId { get; init; }
+
+        /// <summary>
+        /// Filter by shiny Pokémon
+        /// </summary>
         public bool? IsShiny { get; init; }
+
+        /// <summary>
+        /// Filter by Pokéball ID
+        /// </summary>
         public int? BallId { get; init; }
+
+        /// <summary>
+        /// Filter by origin game
+        /// </summary>
         public int? OriginGame { get; init; }
+
+        /// <summary>
+        /// Filter by Tera type (Gen 9)
+        /// </summary>
         public int? TeraType { get; init; }
+
+        /// <summary>
+        /// Number of items to skip (pagination)
+        /// </summary>
         public int Skip { get; init; } = 0;
+
+        /// <summary>
+        /// Number of items to return (recommended max: 100)
+        /// </summary>
         public int Take { get; init; } = 50;
     }
 
+    /// <summary>
+    /// Paginated result with items and total count
+    /// </summary>
+    /// <typeparam name="T">Type of items in the list</typeparam>
     public record PagedResult<T>(IReadOnlyList<T> Items, int Total);
 
+    /// <summary>
+    /// Basic Pokémon information for lists
+    /// </summary>
     public record PokemonListItemDto
     {
+        /// <summary>
+        /// Unique Pokémon ID in the database
+        /// </summary>
         public int Id { get; init; }
+
+        /// <summary>
+        /// Species ID (e.g., 1 = Bulbasaur, 25 = Pikachu)
+        /// </summary>
         public int SpeciesId { get; init; }
+
+        /// <summary>
+        /// Pokémon nickname (null if using species name)
+        /// </summary>
         public string? Nickname { get; init; }
+
+        /// <summary>
+        /// Pokémon level (1-100)
+        /// </summary>
         public int Level { get; init; }
+
+        /// <summary>
+        /// Whether it's shiny
+        /// </summary>
         public bool IsShiny { get; init; }
+
+        /// <summary>
+        /// ID of the Pokéball it was caught in
+        /// </summary>
         public int BallId { get; init; }
+
+        /// <summary>
+        /// Tera type (Gen 9), null if not applicable
+        /// </summary>
         public int? TeraType { get; init; }
-        public string SpriteKey { get; init; } = ""; // especie+forma+shiny
+
+        /// <summary>
+        /// Key to identify the sprite (species+form+shiny)
+        /// </summary>
+        public string SpriteKey { get; init; } = "";
     }
 
+    /// <summary>
+    /// Complete Pokémon information including all its data
+    /// </summary>
     public record PokemonDetailDto
     {
         public int Id { get; init; }
@@ -210,9 +303,19 @@ namespace PokemonBank.Api.Contracts
         public RelearnMoveDto(RelearnMoveEntity rm) { Slot = rm.Slot; MoveId = rm.MoveId; }
     }
 
+    /// <summary>
+    /// DTO for updating editable Pokémon properties
+    /// </summary>
     public record UpdatePokemonDto
     {
+        /// <summary>
+        /// Mark or unmark as favorite (null = no change)
+        /// </summary>
         public bool? Favorite { get; init; }
+
+        /// <summary>
+        /// Personal notes about the Pokémon (null = no change, string.Empty = clear)
+        /// </summary>
         public string? Notes { get; init; }
     }
 }

@@ -23,7 +23,12 @@ namespace PokemonBank.Api.Endpoints
                 db.Tags.RemoveRange(db.Tags);
                 await db.SaveChangesAsync();
                 return Results.Ok("Database wiped.");
-            });
+            })
+            .WithName("WipeDatabase")
+            .WithSummary("⚠️ ADMIN: Delete entire database")
+            .WithDescription("DANGEROUS: Removes all Pokémon, files and data from the database. For development/testing only.")
+            .WithTags("Admin")
+            .Produces<string>(200);
             // Eliminar solo de la base de datos (no toca archivos en disco)
             app.MapDelete("/pokemon/{pokemonId:int}/database", async (int pokemonId, AppDbContext db) =>
             {
@@ -42,7 +47,13 @@ namespace PokemonBank.Api.Endpoints
                 db.Pokemon.Remove(poke);
                 await db.SaveChangesAsync();
                 return Results.Ok(new { Deleted = true, BackupDeleted = false });
-            });
+            })
+            .WithName("DeletePokemonFromDatabase")
+            .WithSummary("Delete a Pokémon from the database")
+            .WithDescription("Removes the Pokémon and all its related data from the database, but preserves the file on disk.")
+            .WithTags("Pokemon", "Admin")
+            .Produces<object>(200)
+            .Produces(404);
 
             // Eliminar de base de datos y backup/disco
             app.MapDelete("/pokemon/{pokemonId:int}/backup", async (int pokemonId, AppDbContext db, FileStorageService storage) =>
@@ -65,7 +76,13 @@ namespace PokemonBank.Api.Endpoints
                 db.Pokemon.Remove(poke);
                 await db.SaveChangesAsync();
                 return Results.Ok(new { Deleted = true, BackupDeleted = true });
-            });
+            })
+            .WithName("DeletePokemonAndBackup")
+            .WithSummary("Delete a Pokémon completely (database + file)")
+            .WithDescription("Removes the Pokémon, all its related data and the original file from disk. Irreversible operation.")
+            .WithTags("Pokemon", "Admin")
+            .Produces<object>(200)
+            .Produces(404);
 
             // ...resto de endpoints (get, patch, etc.)...
 
@@ -104,7 +121,12 @@ namespace PokemonBank.Api.Endpoints
                     .ToListAsync();
 
                 return Results.Ok(new PagedResult<PokemonListItemDto>(items, total));
-            });
+            })
+            .WithName("GetPokemonList")
+            .WithSummary("Get a paginated list of Pokémon")
+            .WithDescription("Returns a paginated list of Pokémon with optional filters by species, shininess, pokeball, origin game, etc.")
+            .WithTags("Pokemon")
+            .Produces<PagedResult<PokemonListItemDto>>(200);
 
             app.MapGet("/pokemon/{id:int}", async (int id, AppDbContext db) =>
             {
@@ -114,7 +136,13 @@ namespace PokemonBank.Api.Endpoints
                 var moves = await db.Moves.AsNoTracking().Where(x => x.PokemonId == p.Id).OrderBy(x => x.Slot).ToListAsync();
                 var relearnMoves = await db.RelearnMoves.AsNoTracking().Where(x => x.PokemonId == p.Id).OrderBy(x => x.Slot).ToListAsync();
                 return Results.Ok(new PokemonDetailDto(p, stats, moves, relearnMoves));
-            });
+            })
+            .WithName("GetPokemonById")
+            .WithSummary("Get complete details of a Pokémon")
+            .WithDescription("Returns all data of a specific Pokémon including stats, moves and relearn moves.")
+            .WithTags("Pokemon")
+            .Produces<PokemonDetailDto>(200)
+            .Produces(404);
 
             app.MapGet("/pokemon/{id:int}/showdown", async (int id, AppDbContext db) =>
             {
@@ -124,7 +152,13 @@ namespace PokemonBank.Api.Endpoints
                 var moves = await db.Moves.AsNoTracking().Where(x => x.PokemonId == p.Id).OrderBy(x => x.Slot).ToListAsync();
                 var text = PokemonBank.Api.Domain.ValueObjects.ShowdownExport.From(p, stats, moves);
                 return Results.Text(text);
-            });
+            })
+            .WithName("ExportPokemonShowdown")
+            .WithSummary("Export a Pokémon in Pokémon Showdown format")
+            .WithDescription("Generates a Pokémon Showdown set with all the Pokémon data (moves, stats, item, etc.).")
+            .WithTags("Pokemon")
+            .Produces<string>(200, "text/plain")
+            .Produces(404);
 
             app.MapPatch("/pokemon/{id:int}", async (int id, UpdatePokemonDto dto, AppDbContext db) =>
             {
@@ -134,7 +168,14 @@ namespace PokemonBank.Api.Endpoints
                 if (dto.Notes is not null) p.Notes = dto.Notes;
                 await db.SaveChangesAsync();
                 return Results.NoContent();
-            });
+            })
+            .WithName("UpdatePokemon")
+            .WithSummary("Update Pokémon properties")
+            .WithDescription("Allows updating editable fields like favorite and notes. Only provided fields in the DTO are updated.")
+            .WithTags("Pokemon")
+            .Accepts<UpdatePokemonDto>("application/json")
+            .Produces(204)
+            .Produces(404);
 
             // Compare two Pokemon to see differences (useful for debugging trades)
             app.MapGet("/pokemon/compare/{id1:int}/{id2:int}", async (int id1, int id2, AppDbContext db) =>
@@ -155,7 +196,13 @@ namespace PokemonBank.Api.Endpoints
                     Differences = comparison.Differences,
                     Summary = comparison.AreIdentical ? "Pokemon are identical" : $"Found {comparison.Differences.Count} differences"
                 });
-            });
+            })
+            .WithName("ComparePokemon")
+            .WithSummary("Compare two Pokémon and show differences")
+            .WithDescription("Analyzes and compares all fields of two different Pokémon. Useful for detecting changes after trades or edits.")
+            .WithTags("Pokemon", "Comparison")
+            .Produces<object>(200)
+            .Produces(404);
 
             return app;
         }

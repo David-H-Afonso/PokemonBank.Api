@@ -16,30 +16,42 @@ namespace PokemonBank.Api.Endpoints
                 var contentType = "application/octet-stream";
                 var downloadName = f.FileName;
                 return Results.File(bytes, contentType, downloadName);
-            });
-            // Exportar el archivo original (backup) desde la base de datos, extensión original
+            })
+            .WithName("GetFileById")
+            .WithSummary("Download a stored file by its internal ID")
+            .WithDescription("Returns the original uploaded file using the file ID. Useful for auditing or retrieving individual files.")
+            .WithTags("Files")
+            .Produces<byte[]>(200, "application/octet-stream")
+            .Produces(404);
+
             app.MapGet("/export/{pokemonId:int}", async (int pokemonId, AppDbContext db) =>
             {
                 var poke = await db.Pokemon.AsNoTracking().FirstOrDefaultAsync(x => x.Id == pokemonId);
                 if (poke == null) return Results.NotFound();
                 var file = await db.Files.AsNoTracking().FirstOrDefaultAsync(x => x.Id == poke.FileId);
                 if (file == null || file.RawBlob == null || file.RawBlob.Length == 0)
-                    return Results.Problem("Backup no encontrado en base de datos.");
+                    return Results.Problem("Backup not found in database.");
 
-                // Validar PKM (opcional)
+                // Validate PKM (optional)
                 try
                 {
                     var pk = PKHeX.Core.EntityFormat.GetFromBytes(file.RawBlob);
-                    if (pk == null) return Results.Problem("El archivo no es un PKM válido.");
+                    if (pk == null) return Results.Problem("The file is not a valid PKM.");
                 }
-                catch { return Results.Problem("El archivo no es un PKM válido."); }
+                catch { return Results.Problem("The file is not a valid PKM."); }
 
                 var ext = string.IsNullOrWhiteSpace(file.Format) ? "pk9" : file.Format;
                 var downloadName = $"pokemon_{pokemonId}.{ext}";
                 return Results.File(file.RawBlob, "application/octet-stream", downloadName);
-            });
+            })
+            .WithName("ExportPokemonOriginal")
+            .WithSummary("Download the original PKM file of a Pokémon")
+            .WithDescription("Returns the original PKM file (.pk9, .pk8, etc.) stored in the database for the specified Pokémon. The file is identical to the one initially uploaded.")
+            .WithTags("Files")
+            .Produces<byte[]>(200, "application/octet-stream")
+            .Produces(404)
+            .Produces(500);
 
-            // Exportar el archivo desde disco (por si se requiere comparar o auditar)
             app.MapGet("/export/database/{pokemonId:int}", async (int pokemonId, AppDbContext db, FileStorageService storage) =>
             {
                 var poke = await db.Pokemon.AsNoTracking().FirstOrDefaultAsync(x => x.Id == pokemonId);
@@ -47,20 +59,27 @@ namespace PokemonBank.Api.Endpoints
                 var file = await db.Files.AsNoTracking().FirstOrDefaultAsync(x => x.Id == poke.FileId);
                 if (file == null) return Results.NotFound();
                 var bytes = storage.Read(file.StoredPath);
-                if (bytes == null || bytes.Length == 0) return Results.Problem("Archivo no encontrado en disco.");
+                if (bytes == null || bytes.Length == 0) return Results.Problem("File not found on disk.");
 
-                // Validar PKM (opcional)
+                // Validate PKM (optional)
                 try
                 {
                     var pk = PKHeX.Core.EntityFormat.GetFromBytes(bytes);
-                    if (pk == null) return Results.Problem("El archivo no es un PKM válido.");
+                    if (pk == null) return Results.Problem("The file is not a valid PKM.");
                 }
-                catch { return Results.Problem("El archivo no es un PKM válido."); }
+                catch { return Results.Problem("The file is not a valid PKM."); }
 
                 var ext = string.IsNullOrWhiteSpace(file.Format) ? "pk9" : file.Format;
                 var downloadName = $"pokemon_{pokemonId}.{ext}";
                 return Results.File(bytes, "application/octet-stream", downloadName);
-            });
+            })
+            .WithName("ExportPokemonFromDisk")
+            .WithSummary("Download the PKM file from disk (audit)")
+            .WithDescription("Returns the PKM file stored on disk for the specified Pokémon. Useful for comparing the database backup vs. the file on disk.")
+            .WithTags("Files")
+            .Produces<byte[]>(200, "application/octet-stream")
+            .Produces(404)
+            .Produces(500);
             return app;
         }
     }
