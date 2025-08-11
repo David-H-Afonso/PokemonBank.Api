@@ -40,8 +40,8 @@ namespace PokemonBank.Api.Endpoints
                 }
                 catch { return Results.Problem("The file is not a valid PKM."); }
 
-                var ext = string.IsNullOrWhiteSpace(file.Format) ? "pk9" : file.Format;
-                var downloadName = $"pokemon_{pokemonId}.{ext}";
+                // Use the original file name for download
+                var downloadName = file.FileName;
                 return Results.File(file.RawBlob, "application/octet-stream", downloadName);
             })
             .WithName("ExportPokemonOriginal")
@@ -69,8 +69,8 @@ namespace PokemonBank.Api.Endpoints
                 }
                 catch { return Results.Problem("The file is not a valid PKM."); }
 
-                var ext = string.IsNullOrWhiteSpace(file.Format) ? "pk9" : file.Format;
-                var downloadName = $"pokemon_{pokemonId}.{ext}";
+                // Use the original file name for download
+                var downloadName = file.FileName;
                 return Results.File(bytes, "application/octet-stream", downloadName);
             })
             .WithName("ExportPokemonFromDisk")
