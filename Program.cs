@@ -11,6 +11,29 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",     // React default
+                "http://localhost:5173",     // Vite default
+                "http://localhost:8080",     // Vue CLI default
+                "http://localhost:4200",     // Angular default
+                "http://localhost:3001",     // Next.js alternate
+                "http://localhost:5174",     // Vite alternate
+                "https://localhost:3000",    // HTTPS versions
+                "https://localhost:5173",
+                "https://localhost:8080",
+                "https://localhost:4200"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddAppDbContext(builder.Configuration);
 builder.Services.AddPokemonBankServices(builder.Configuration);
 builder.Services.AddHealthChecks();
@@ -19,6 +42,9 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+// Use CORS before other middleware
+app.UseCors("AllowLocalhost");
 
 app.UseHttpsRedirection();
 
