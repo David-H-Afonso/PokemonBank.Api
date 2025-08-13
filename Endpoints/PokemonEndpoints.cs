@@ -93,6 +93,8 @@ namespace PokemonBank.Api.Endpoints
                     query = query.Where(p => (p.Nickname ?? "").Contains(q.Search) || p.OtName.Contains(q.Search));
                 if (q.SpeciesId.HasValue)
                     query = query.Where(p => p.SpeciesId == q.SpeciesId);
+                if (q.Form.HasValue)
+                    query = query.Where(p => p.Form == q.Form);
                 if (q.IsShiny.HasValue)
                     query = query.Where(p => p.IsShiny == q.IsShiny);
                 if (q.BallId.HasValue)
@@ -111,6 +113,7 @@ namespace PokemonBank.Api.Endpoints
                     {
                         Id = p.Id,
                         SpeciesId = p.SpeciesId,
+                        Form = p.Form,
                         Nickname = p.Nickname,
                         Level = p.Level,
                         IsShiny = p.IsShiny,

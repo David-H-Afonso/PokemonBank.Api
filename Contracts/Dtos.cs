@@ -45,6 +45,11 @@ namespace PokemonBank.Api.Contracts
         public int? SpeciesId { get; init; }
 
         /// <summary>
+        /// Filter by form ID (e.g., 0 = Normal, 1 = Alolan, 2 = Galarian)
+        /// </summary>
+        public int? Form { get; init; }
+
+        /// <summary>
         /// Filter by shiny Pokémon
         /// </summary>
         public bool? IsShiny { get; init; }
@@ -97,6 +102,11 @@ namespace PokemonBank.Api.Contracts
         public int SpeciesId { get; init; }
 
         /// <summary>
+        /// Form ID (e.g., 0 = Normal Meowth, 1 = Alolan Meowth, 2 = Galarian Meowth)
+        /// </summary>
+        public int Form { get; init; }
+
+        /// <summary>
         /// Pokémon nickname (null if using species name)
         /// </summary>
         public string? Nickname { get; init; }
@@ -134,6 +144,12 @@ namespace PokemonBank.Api.Contracts
     {
         public int Id { get; init; }
         public int SpeciesId { get; init; }
+
+        /// <summary>
+        /// Form ID (e.g., 0 = Normal, 1 = Alolan, 2 = Galarian, etc.)
+        /// </summary>
+        public int Form { get; init; }
+
         public string? Nickname { get; init; }
         public string OtName { get; init; } = "";
         public int Tid { get; init; }
@@ -157,7 +173,7 @@ namespace PokemonBank.Api.Contracts
         public uint PersonalityId { get; init; }
         public uint Experience { get; init; }
         public int CurrentFriendship { get; init; }
-        public int Form { get; init; }
+        // Form field moved up for better visibility
         public uint FormArgument { get; init; }
         public bool IsEgg { get; init; }
         public bool FatefulEncounter { get; init; }

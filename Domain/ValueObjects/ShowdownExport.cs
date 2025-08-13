@@ -10,7 +10,7 @@ namespace PokemonBank.Api.Domain.ValueObjects
         {
             var sb = new StringBuilder();
             // Usar PKHeX.Core strings en lugar de nuestros enums
-            var speciesName = PkHexStringService.GetSpeciesName(p.SpeciesId);
+            var speciesName = PkHexStringService.GetSpeciesName(p.SpeciesId, p.Form);
             var ballName = PkHexStringService.GetBallName(p.BallId);
             var abilityName = PkHexStringService.GetAbilityName(p.AbilityId);
             var natureName = PkHexStringService.GetNatureName(p.Nature);
