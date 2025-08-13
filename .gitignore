@@ -179,3 +179,15 @@ $RECYCLE.BIN/
 
 # VS Code settings
 .history/
+
+# Pokemon Bank Data (use Documents/PokeBank instead)
+Storage/
+*.db
+*.db-shm
+*.db-wal
+
+# Pokemon files (should be in user's Documents)
+*.pk*
+*.pb*
+*.ekx
+*.ek*

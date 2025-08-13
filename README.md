@@ -100,11 +100,36 @@ PokemonBank.Api/
 ├── Migrations/          # EF Core migrations
 ├── Properties/          # Launch settings
 ├── ReferenceData/       # (Removed) Old enums/data, now replaced by PKHeX.Core
-├── Storage/             # SQLite DB and file vault
 ├── appsettings.json
 ├── Program.cs
 ├── PokemonBank.Api.csproj
 ├── README.md
+```
+
+**Data Storage Location:**
+By default, the application stores data in the user's Documents folder:
+
+- **Database:** `%USERPROFILE%\Documents\PokeBank\pokemonbank.db`
+- **File Vault:** `%USERPROFILE%\Documents\PokeBank\Vault\`
+
+This ensures:
+
+- User data is stored in a standard, safe location
+- Multiple users can run the application independently
+- Data is preserved even if the application is moved or updated
+- Better separation between code and user data
+
+You can override these paths in `appsettings.json` if needed:
+
+```json
+{
+  "Vault": {
+    "BasePath": "C:\\CustomPath\\Vault"
+  },
+  "ConnectionStrings": {
+    "Default": "Data Source=C:\\CustomPath\\pokemonbank.db"
+  }
+}
 ```
 
 - `Contracts/`: DTOs for API requests/responses.
@@ -112,7 +137,6 @@ PokemonBank.Api/
 - `Endpoints/`: Minimal API endpoints (import, get, compare, health).
 - `Infrastructure/Services/`: Business logic, file storage, PKHeX integration, helpers (including name resolution and comparison).
 - `ReferenceData/`: **Removed**. All enums and static data now use PKHeX.Core GameStrings.
-- `Storage/`: SQLite DB and original file vault.
 
 ---
 

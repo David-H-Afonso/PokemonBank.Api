@@ -16,22 +16,22 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
     {
-    policy.WithOrigins(
-        "http://localhost:3000",     // React default
-        "http://localhost:5173",     // Vite default
-        "http://localhost:8080",     // Vue CLI default
-        "http://localhost:4200",     // Angular default
-        "http://localhost:3001",     // Next.js alternate
-        "http://localhost:5174",     // Vite alternate
-        "https://localhost:3000",    // HTTPS versions
-        "https://localhost:5173",
-        "https://localhost:8080",
-        "https://localhost:4200"
-        )
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials()
-        .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
+        policy.WithOrigins(
+            "http://localhost:3000",     // React default
+            "http://localhost:5173",     // Vite default
+            "http://localhost:8080",     // Vue CLI default
+            "http://localhost:4200",     // Angular default
+            "http://localhost:3001",     // Next.js alternate
+            "http://localhost:5174",     // Vite alternate
+            "https://localhost:3000",    // HTTPS versions
+            "https://localhost:5173",
+            "https://localhost:8080",
+            "https://localhost:4200"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Disposition", "Content-Length", "Content-Type");
     });
 });
 
@@ -72,10 +72,31 @@ namespace PokemonBank.Api.Extensions
     {
         public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration config)
         {
-            var cs = config.GetConnectionString("Default")!;
+            // Use user's Documents folder for database as well
+            var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var defaultDbPath = Path.Combine(documentsPath, "PokeBank", "pokemonbank.db");
+            var configuredCs = config.GetConnectionString("Default");
+
+            string connectionString;
+            if (string.IsNullOrEmpty(configuredCs) || configuredCs.Contains("Storage/pokemonbank.db"))
+            {
+                // Ensure the directory exists
+                var dbDirectory = Path.GetDirectoryName(defaultDbPath);
+                if (!Directory.Exists(dbDirectory))
+                {
+                    Directory.CreateDirectory(dbDirectory!);
+                }
+                // Use default path in Documents if no custom connection string is configured
+                connectionString = $"Data Source={defaultDbPath}";
+            }
+            else
+            {
+                connectionString = configuredCs;
+            }
+
             services.AddDbContext<AppDbContext>(opt =>
             {
-                opt.UseSqlite(cs);
+                opt.UseSqlite(connectionString);
             });
             return services;
         }
@@ -84,7 +105,19 @@ namespace PokemonBank.Api.Extensions
         {
             services.AddScoped<FileStorageService>(sp =>
             {
-                var basePath = config.GetSection("Vault").GetValue<string>("BasePath") ?? "Storage/Vault";
+                // Use user's Documents folder by default for better security and user experience
+                var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                var defaultPath = Path.Combine(documentsPath, "PokeBank");
+                var configuredPath = config.GetSection("Vault").GetValue<string>("BasePath");
+                var basePath = string.IsNullOrWhiteSpace(configuredPath) ? defaultPath : configuredPath;
+
+                // Ensure the base directory exists
+                if (!Directory.Exists(basePath))
+                {
+                    Directory.CreateDirectory(basePath);
+                    Console.WriteLine($"Created PokeBank directory: {basePath}");
+                }
+
                 return new FileStorageService(basePath);
             });
             services.AddScoped<PokemonBank.Api.Infrastructure.Services.PkhexCoreParser>();
