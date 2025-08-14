@@ -12,10 +12,22 @@ namespace PokemonBank.Api.Endpoints
             {
                 var f = await db.Files.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
                 if (f == null) return Results.NotFound();
-                var bytes = storage.Read(f.StoredPath);
-                var contentType = "application/octet-stream";
-                var downloadName = f.FileName;
-                return Results.File(bytes, contentType, downloadName);
+
+                try
+                {
+                    var bytes = storage.Read(f.StoredPath);
+                    var contentType = "application/octet-stream";
+                    var downloadName = f.FileName;
+                    return Results.File(bytes, contentType, downloadName);
+                }
+                catch (FileNotFoundException)
+                {
+                    return Results.Problem($"File not found on disk: {f.StoredPath}");
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem($"Error reading file: {ex.Message}");
+                }
             })
             .WithName("GetFileById")
             .WithSummary("Download a stored file by its internal ID")
@@ -58,20 +70,32 @@ namespace PokemonBank.Api.Endpoints
                 if (poke == null) return Results.NotFound();
                 var file = await db.Files.AsNoTracking().FirstOrDefaultAsync(x => x.Id == poke.FileId);
                 if (file == null) return Results.NotFound();
-                var bytes = storage.Read(file.StoredPath);
-                if (bytes == null || bytes.Length == 0) return Results.Problem("File not found on disk.");
 
-                // Validate PKM (optional)
                 try
                 {
-                    var pk = PKHeX.Core.EntityFormat.GetFromBytes(bytes);
-                    if (pk == null) return Results.Problem("The file is not a valid PKM.");
-                }
-                catch { return Results.Problem("The file is not a valid PKM."); }
+                    var bytes = storage.Read(file.StoredPath);
+                    if (bytes == null || bytes.Length == 0) return Results.Problem("File is empty.");
 
-                // Use the original file name for download
-                var downloadName = file.FileName;
-                return Results.File(bytes, "application/octet-stream", downloadName);
+                    // Validate PKM (optional)
+                    try
+                    {
+                        var pk = PKHeX.Core.EntityFormat.GetFromBytes(bytes);
+                        if (pk == null) return Results.Problem("The file is not a valid PKM.");
+                    }
+                    catch { return Results.Problem("The file is not a valid PKM."); }
+
+                    // Use the original file name for download
+                    var downloadName = file.FileName;
+                    return Results.File(bytes, "application/octet-stream", downloadName);
+                }
+                catch (FileNotFoundException)
+                {
+                    return Results.Problem($"File not found on disk: {file.StoredPath}");
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem($"Error reading file: {ex.Message}");
+                }
             })
             .WithName("ExportPokemonFromDisk")
             .WithSummary("Download the PKM file from disk (audit)")

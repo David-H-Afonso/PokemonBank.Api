@@ -33,7 +33,7 @@ namespace PokemonBank.Api.Infrastructure.Services
             return pk.SID16;
         }
 
-        public async Task<ParseResult?> ParseAsync(byte[] bytes, string fileName)
+        public async Task<ParseResult?> ParseAsync(byte[] bytes, string fileName, FileStorageService? storageService = null)
         {
             return await Task.Run(() =>
             {
@@ -258,6 +258,23 @@ namespace PokemonBank.Api.Infrastructure.Services
                         Slot = slot,
                         MoveId = relearnMoveId
                     });
+                }
+
+                // Save to file storage if service is provided
+                if (storageService != null)
+                {
+                    var pokemonName = PkHexStringService.GetSpeciesName(pk.Species) ?? "Pokemon";
+                    var storedPath = storageService.Save(sha, ext, bytes, pokemonName, DateTime.UtcNow);
+                    file.StoredPath = storedPath;
+                    Console.WriteLine($"Saved file: {storedPath}, Size: {bytes.Length} bytes, SHA256: {sha}");
+
+                    // Verify save
+                    if (File.Exists(storedPath))
+                    {
+                        var savedBytes = File.ReadAllBytes(storedPath);
+                        var savedSha256 = FileStorageService.ComputeSha256(savedBytes);
+                        Console.WriteLine($"Are identical? {savedSha256 == sha}");
+                    }
                 }
 
                 return new ParseResult

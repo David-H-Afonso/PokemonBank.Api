@@ -45,12 +45,14 @@ Supported file formats:
                         TotalProcessed = result.TotalProcessed,
                         NewlyImported = result.NewlyImported.Count,
                         AlreadyImported = result.AlreadyImported.Count,
+                        Deleted = result.Deleted.Count,
                         Errors = result.Errors.Count
                     },
                     Details = new
                     {
                         NewlyImported = result.NewlyImported,
                         AlreadyImported = result.AlreadyImported,
+                        Deleted = result.Deleted,
                         Errors = result.Errors
                     }
                 });

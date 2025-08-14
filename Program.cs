@@ -55,6 +55,7 @@ app.MapImportEndpoints();
 app.MapPokemonEndpoints();
 app.MapFilesEndpoints();
 app.MapScanEndpoints();
+app.MapMaintenanceEndpoints();
 
 // Asegurar que exista la carpeta de almacenamiento y la BD
 using (var scope = app.Services.CreateScope())
@@ -115,7 +116,7 @@ namespace PokemonBank.Api.Extensions
             {
                 // Use user's Documents folder for Pokemon file storage (public data)
                 var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var defaultPath = Path.Combine(documentsPath, "Pokebank", "storage");
+                var defaultPath = Path.Combine(documentsPath, "Pokebank", "backup");
                 var configuredPath = config.GetSection("Vault").GetValue<string>("BasePath");
                 var basePath = string.IsNullOrWhiteSpace(configuredPath) ? defaultPath : configuredPath;
 
@@ -123,7 +124,7 @@ namespace PokemonBank.Api.Extensions
                 if (!Directory.Exists(basePath))
                 {
                     Directory.CreateDirectory(basePath);
-                    Console.WriteLine($"Created PokeBank storage directory: {basePath}");
+                    Console.WriteLine($"Created PokeBank backup directory: {basePath}");
                 }
 
                 return new FileStorageService(basePath);

@@ -32,7 +32,7 @@ namespace PokemonBank.Api.Endpoints
                     // Log to verify we save the original bytes
                     Console.WriteLine($"Original file: {f.FileName}, Size: {bytes.Length} bytes, SHA256: {FileStorageService.ComputeSha256(bytes)}");
 
-                    var parse = await parser.ParseAsync(bytes, f.FileName);
+                    var parse = await parser.ParseAsync(bytes, f.FileName, storage);
                     if (parse is null)
                     {
                         imported.Add(new { FileName = f.FileName, Status = "error", Message = "Could not parse file" });
@@ -48,22 +48,17 @@ namespace PokemonBank.Api.Endpoints
                     }
 
 
-                    // Determine file name: nickname or species
-                    var pokeName = !string.IsNullOrWhiteSpace(parse.Pokemon.Nickname) ? parse.Pokemon.Nickname : $"{parse.Pokemon.SpeciesId}";
-                    var ext = Path.GetExtension(f.FileName).TrimStart('.').ToLowerInvariant();
-                    var storedPath = storage.Save(parse.File.Sha256, ext, bytes, pokeName);
-
-                    // Verify it was saved correctly
-                    var savedBytes = storage.Read(storedPath);
-                    var savedSha256 = FileStorageService.ComputeSha256(savedBytes);
-                    Console.WriteLine($"Saved file: {storedPath}, Size: {savedBytes.Length} bytes, SHA256: {savedSha256}");
-                    Console.WriteLine($"Are identical? {parse.File.Sha256 == savedSha256 && bytes.Length == savedBytes.Length}");
+                    // File already parsed and saved by ParseAsync
+                    if (string.IsNullOrEmpty(parse.File.StoredPath))
+                    {
+                        imported.Add(new { FileName = f.FileName, Status = "error", Message = "Failed to save file to storage" });
+                        continue;
+                    }
 
                     // Save backup in database
                     parse.File.RawBlob = bytes;
 
                     // Persistence
-                    parse.File.StoredPath = storedPath;
                     db.Files.Add(parse.File);
                     await db.SaveChangesAsync();
 

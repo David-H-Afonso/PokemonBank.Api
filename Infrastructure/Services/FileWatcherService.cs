@@ -6,7 +6,7 @@ using PokemonBank.Api.Infrastructure;
 namespace PokemonBank.Api.Infrastructure.Services
 {
     /// <summary>
-    /// Service to monitor and automatically import Pokemon files from the Documents/Pokebank/storage directory
+    /// Service to monitor and automatically import Pokemon files from the Documents/Pokebank directory (excluding backup folder)
     /// </summary>
     public class FileWatcherService
     {
@@ -14,6 +14,7 @@ namespace PokemonBank.Api.Infrastructure.Services
         private readonly PkhexCoreParser _parser;
         private readonly FileStorageService _storage;
         private readonly string _watchPath;
+        private readonly string _backupPath;
 
         public FileWatcherService(AppDbContext context, PkhexCoreParser parser, FileStorageService storage)
         {
@@ -21,20 +22,28 @@ namespace PokemonBank.Api.Infrastructure.Services
             _parser = parser;
             _storage = storage;
 
-            // Watch the Documents/Pokebank/storage directory
+            // Watch the Documents/Pokebank directory (user's organization area)
             var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            _watchPath = Path.Combine(documentsPath, "Pokebank", "storage");
+            _watchPath = Path.Combine(documentsPath, "Pokebank");
+            _backupPath = Path.Combine(_watchPath, "backup");
 
-            // Ensure the directory exists
+            // Ensure the directories exist
             if (!Directory.Exists(_watchPath))
             {
                 Directory.CreateDirectory(_watchPath);
                 Console.WriteLine($"Created watch directory: {_watchPath}");
             }
+
+            if (!Directory.Exists(_backupPath))
+            {
+                Directory.CreateDirectory(_backupPath);
+                Console.WriteLine($"Created backup directory: {_backupPath}");
+            }
         }
 
         /// <summary>
         /// Scans the watch directory for new Pokemon files and imports them
+        /// Also removes database entries for files that no longer exist in the user area (NOT backup)
         /// </summary>
         public async Task<ImportScanResult> ScanAndImportNewFilesAsync()
         {
@@ -42,12 +51,15 @@ namespace PokemonBank.Api.Infrastructure.Services
 
             try
             {
-                // Get all Pokemon files in the directory and subdirectories
+                // Always check for deleted files first, regardless of whether there are new files
+                await CleanupDeletedFilesAsync(result);
+
+                // Get all Pokemon files in the directory and subdirectories, EXCLUDING backup folder
                 var pokemonFiles = Directory.GetFiles(_watchPath, "*.*", SearchOption.AllDirectories)
-                    .Where(file => IsPokemonFile(file))
+                    .Where(file => IsPokemonFile(file) && !IsInBackupDirectory(file))
                     .ToList();
 
-                Console.WriteLine($"Found {pokemonFiles.Count} Pokemon files in watch directory");
+                Console.WriteLine($"Found {pokemonFiles.Count} Pokemon files in watch directory (excluding backup)");
 
                 foreach (var filePath in pokemonFiles)
                 {
@@ -71,6 +83,73 @@ namespace PokemonBank.Api.Infrastructure.Services
             return result;
         }
 
+        private async Task CleanupDeletedFilesAsync(ImportScanResult result)
+        {
+            try
+            {
+                // Get all files currently in the user area (excluding backup)
+                var currentUserFiles = Directory.GetFiles(_watchPath, "*.*", SearchOption.AllDirectories)
+                    .Where(file => IsPokemonFile(file) && !IsInBackupDirectory(file))
+                    .ToList();
+
+                // Calculate hashes for current files
+                var currentFileHashes = new HashSet<string>();
+                foreach (var filePath in currentUserFiles)
+                {
+                    try
+                    {
+                        var fileBytes = await File.ReadAllBytesAsync(filePath);
+                        var hash = FileStorageService.ComputeSha256(fileBytes);
+                        currentFileHashes.Add(hash);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error reading file {filePath} for hash calculation: {ex.Message}");
+                    }
+                }
+
+                // Get all files in database
+                var allDbFiles = await _context.Files.ToListAsync();
+
+                foreach (var dbFile in allDbFiles)
+                {
+                    // If the file hash is not found in current user files, it means the user deleted it
+                    // Remove from database but keep backup file intact
+                    if (!currentFileHashes.Contains(dbFile.Sha256))
+                    {
+                        var pokemon = await _context.Pokemon.FirstOrDefaultAsync(p => p.FileId == dbFile.Id);
+                        if (pokemon != null)
+                        {
+                            // Remove related data
+                            var stats = await _context.Stats.FirstOrDefaultAsync(s => s.PokemonId == pokemon.Id);
+                            if (stats != null) _context.Stats.Remove(stats);
+
+                            var moves = await _context.Moves.Where(m => m.PokemonId == pokemon.Id).ToListAsync();
+                            _context.Moves.RemoveRange(moves);
+
+                            var relearnMoves = await _context.RelearnMoves.Where(r => r.PokemonId == pokemon.Id).ToListAsync();
+                            _context.RelearnMoves.RemoveRange(relearnMoves);
+
+                            _context.Pokemon.Remove(pokemon);
+                        }
+
+                        _context.Files.Remove(dbFile);
+                        result.Deleted.Add(dbFile.FileName);
+                        Console.WriteLine($"Removed deleted file from database: {dbFile.FileName} (backup preserved)");
+                    }
+                }
+
+                if (result.Deleted.Any())
+                {
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during cleanup: {ex.Message}");
+                result.Errors.Add($"Cleanup error: {ex.Message}");
+            }
+        }
         private async Task ProcessFileAsync(string filePath, ImportScanResult result)
         {
             var fileName = Path.GetFileName(filePath);
@@ -87,8 +166,8 @@ namespace PokemonBank.Api.Infrastructure.Services
                 return;
             }
 
-            // Parse the Pokemon file
-            var parseResult = await _parser.ParseAsync(fileBytes, fileName);
+            // Parse the Pokemon file and save to storage
+            var parseResult = await _parser.ParseAsync(fileBytes, fileName, _storage);
             if (parseResult == null)
             {
                 result.Errors.Add($"{fileName}: Failed to parse Pokemon file");
@@ -97,21 +176,46 @@ namespace PokemonBank.Api.Infrastructure.Services
 
             // Save to database
             _context.Files.Add(parseResult.File);
+            await _context.SaveChangesAsync(); // Save File first to get ID
+
+            parseResult.Pokemon.FileId = parseResult.File.Id;
             _context.Pokemon.Add(parseResult.Pokemon);
+            await _context.SaveChangesAsync(); // Save Pokemon to get ID
 
             if (parseResult.Stats != null)
+            {
+                parseResult.Stats.PokemonId = parseResult.Pokemon.Id;
                 _context.Stats.Add(parseResult.Stats);
+            }
 
             if (parseResult.Moves.Any())
+            {
+                foreach (var move in parseResult.Moves)
+                    move.PokemonId = parseResult.Pokemon.Id;
                 _context.Moves.AddRange(parseResult.Moves);
+            }
 
             if (parseResult.RelearnMoves.Any())
+            {
+                foreach (var relearnMove in parseResult.RelearnMoves)
+                    relearnMove.PokemonId = parseResult.Pokemon.Id;
                 _context.RelearnMoves.AddRange(parseResult.RelearnMoves);
+            }
 
             await _context.SaveChangesAsync();
 
             result.NewlyImported.Add(fileName);
             Console.WriteLine($"Successfully imported: {fileName}");
+        }
+
+        /// <summary>
+        /// Checks if a file path is within the backup directory
+        /// </summary>
+        private bool IsInBackupDirectory(string filePath)
+        {
+            var normalizedFilePath = Path.GetFullPath(filePath);
+            var normalizedBackupPath = Path.GetFullPath(_backupPath);
+            return normalizedFilePath.StartsWith(normalizedBackupPath, StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsPokemonFile(string filePath)
@@ -132,8 +236,9 @@ namespace PokemonBank.Api.Infrastructure.Services
     {
         public List<string> NewlyImported { get; } = new();
         public List<string> AlreadyImported { get; } = new();
+        public List<string> Deleted { get; } = new();
         public List<string> Errors { get; } = new();
 
-        public int TotalProcessed => NewlyImported.Count + AlreadyImported.Count + Errors.Count;
+        public int TotalProcessed => NewlyImported.Count + AlreadyImported.Count + Deleted.Count + Errors.Count;
     }
 }

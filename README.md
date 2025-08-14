@@ -115,13 +115,13 @@ The application uses two separate directories for optimal security and usability
 
 **Public Data (User accessible):**
 
-- **Pokemon Files:** `%UserProfile%\Documents\Pokebank\storage\`
+- **Pokemon Files:** `%UserProfile%\Documents\Pokebank\backup\`
 
 **📁 Automatic File Detection:**
 The application automatically monitors the Documents folder and:
 
 - Scans for new Pokemon files on startup
-- Supports drag-and-drop workflow (just copy files to Documents/Pokebank/storage)
+- Supports drag-and-drop workflow (just copy files to Documents/Pokebank/backup)
 - Automatically imports new files and skips duplicates
 - Works with subdirectories
 
@@ -145,7 +145,7 @@ You can override these paths in `appsettings.json` if needed:
 ```json
 {
   "Vault": {
-    "BasePath": "C:\\CustomPath\\storage"
+    "BasePath": "C:\\CustomPath\\backup"
   },
   "ConnectionStrings": {
     "Default": "Data Source=C:\\CustomPath\\pokemonbank.db"
