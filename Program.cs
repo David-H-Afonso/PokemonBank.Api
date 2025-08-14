@@ -54,6 +54,7 @@ app.MapHealthChecks();
 app.MapImportEndpoints();
 app.MapPokemonEndpoints();
 app.MapFilesEndpoints();
+app.MapScanEndpoints();
 
 // Asegurar que exista la carpeta de almacenamiento y la BD
 using (var scope = app.Services.CreateScope())
@@ -62,6 +63,14 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
     var storage = scope.ServiceProvider.GetRequiredService<PokemonBank.Api.Infrastructure.Services.FileStorageService>();
     storage.EnsureVault();
+
+    // Automatically scan for new files on startup
+    var fileWatcher = scope.ServiceProvider.GetRequiredService<PokemonBank.Api.Infrastructure.Services.FileWatcherService>();
+    var scanResult = await fileWatcher.ScanAndImportNewFilesAsync();
+    if (scanResult.NewlyImported.Any())
+    {
+        Console.WriteLine($"Startup scan: Imported {scanResult.NewlyImported.Count} new Pokemon files");
+    }
 }
 
 await app.RunAsync();
@@ -72,21 +81,21 @@ namespace PokemonBank.Api.Extensions
     {
         public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration config)
         {
-            // Use user's Documents folder for database as well
-            var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var defaultDbPath = Path.Combine(documentsPath, "PokeBank", "pokemonbank.db");
+            // Use LocalAppData for database (private data)
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var defaultDbPath = Path.Combine(localAppData, "Pokebank", "storage", "pokemonbank.db");
             var configuredCs = config.GetConnectionString("Default");
 
             string connectionString;
-            if (string.IsNullOrEmpty(configuredCs) || configuredCs.Contains("Storage/pokemonbank.db"))
+            if (string.IsNullOrEmpty(configuredCs))
             {
                 // Ensure the directory exists
                 var dbDirectory = Path.GetDirectoryName(defaultDbPath);
                 if (!Directory.Exists(dbDirectory))
                 {
                     Directory.CreateDirectory(dbDirectory!);
+                    Console.WriteLine($"Created database directory: {dbDirectory}");
                 }
-                // Use default path in Documents if no custom connection string is configured
                 connectionString = $"Data Source={defaultDbPath}";
             }
             else
@@ -100,14 +109,13 @@ namespace PokemonBank.Api.Extensions
             });
             return services;
         }
-
         public static IServiceCollection AddPokemonBankServices(this IServiceCollection services, IConfiguration config)
         {
             services.AddScoped<FileStorageService>(sp =>
             {
-                // Use user's Documents folder by default for better security and user experience
+                // Use user's Documents folder for Pokemon file storage (public data)
                 var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var defaultPath = Path.Combine(documentsPath, "PokeBank");
+                var defaultPath = Path.Combine(documentsPath, "Pokebank", "storage");
                 var configuredPath = config.GetSection("Vault").GetValue<string>("BasePath");
                 var basePath = string.IsNullOrWhiteSpace(configuredPath) ? defaultPath : configuredPath;
 
@@ -115,12 +123,13 @@ namespace PokemonBank.Api.Extensions
                 if (!Directory.Exists(basePath))
                 {
                     Directory.CreateDirectory(basePath);
-                    Console.WriteLine($"Created PokeBank directory: {basePath}");
+                    Console.WriteLine($"Created PokeBank storage directory: {basePath}");
                 }
 
                 return new FileStorageService(basePath);
             });
             services.AddScoped<PokemonBank.Api.Infrastructure.Services.PkhexCoreParser>();
+            services.AddScoped<PokemonBank.Api.Infrastructure.Services.FileWatcherService>();
             return services;
         }
     }

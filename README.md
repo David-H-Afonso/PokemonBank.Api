@@ -107,24 +107,45 @@ PokemonBank.Api/
 ```
 
 **Data Storage Location:**
-By default, the application stores data in the user's Documents folder:
+The application uses two separate directories for optimal security and usability:
 
-- **Database:** `%USERPROFILE%\Documents\PokeBank\pokemonbank.db`
-- **File Vault:** `%USERPROFILE%\Documents\PokeBank\Vault\`
+**Private Data (Hidden from user):**
+
+- **Database:** `%LocalAppData%\Pokebank\storage\pokemonbank.db`
+
+**Public Data (User accessible):**
+
+- **Pokemon Files:** `%UserProfile%\Documents\Pokebank\storage\`
+
+**📁 Automatic File Detection:**
+The application automatically monitors the Documents folder and:
+
+- Scans for new Pokemon files on startup
+- Supports drag-and-drop workflow (just copy files to Documents/Pokebank/storage)
+- Automatically imports new files and skips duplicates
+- Works with subdirectories
+
+**Supported file formats:**
+
+- `.pk1`, `.pk2`, `.pk3`, `.pk4`, `.pk5`, `.pk6`, `.pk7`, `.pk8`, `.pk9`
+- `.pb7`, `.pb8` (Pokemon Box files)
+- `.ek1` - `.ek9` (Encrypted files)
+- `.ekx` (Encrypted batch)
 
 This ensures:
 
-- User data is stored in a standard, safe location
+- Database is secure and hidden from casual user access
+- Pokemon files are easily accessible for backup/sharing
+- Clean separation between application data and user data
 - Multiple users can run the application independently
-- Data is preserved even if the application is moved or updated
-- Better separation between code and user data
+- "Dump" folder functionality for easy file management
 
 You can override these paths in `appsettings.json` if needed:
 
 ```json
 {
   "Vault": {
-    "BasePath": "C:\\CustomPath\\Vault"
+    "BasePath": "C:\\CustomPath\\storage"
   },
   "ConnectionStrings": {
     "Default": "Data Source=C:\\CustomPath\\pokemonbank.db"
