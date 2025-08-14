@@ -16,18 +16,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:3000",     // React default
-            "http://localhost:5173",     // Vite default
-            "http://localhost:8080",     // Vue CLI default
-            "http://localhost:4200",     // Angular default
-            "http://localhost:3001",     // Next.js alternate
-            "http://localhost:5174",     // Vite alternate
-            "https://localhost:3000",    // HTTPS versions
-            "https://localhost:5173",
-            "https://localhost:8080",
-            "https://localhost:4200"
-            )
+        // Para Electron y desarrollo local, permitir cualquier localhost
+        policy.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin)) return false;
+            var uri = new Uri(origin);
+            return uri.Host == "localhost" || uri.Host == "127.0.0.1";
+        })
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
@@ -82,22 +77,34 @@ namespace PokemonBank.Api.Extensions
     {
         public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration config)
         {
-            // Use LocalAppData for database (private data)
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var defaultDbPath = Path.Combine(localAppData, "Pokebank", "storage", "pokemonbank.db");
+            // Priorizar variable de entorno DB_PATH para Electron
+            var envDbPath = Environment.GetEnvironmentVariable("DB_PATH");
+            string dbPath;
+
+            if (!string.IsNullOrEmpty(envDbPath))
+            {
+                dbPath = envDbPath;
+            }
+            else
+            {
+                // Use LocalAppData for database (private data) como fallback
+                var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                dbPath = Path.Combine(localAppData, "Pokebank", "storage", "pokemonbank.db");
+            }
+
             var configuredCs = config.GetConnectionString("Default");
 
             string connectionString;
             if (string.IsNullOrEmpty(configuredCs))
             {
                 // Ensure the directory exists
-                var dbDirectory = Path.GetDirectoryName(defaultDbPath);
+                var dbDirectory = Path.GetDirectoryName(dbPath);
                 if (!Directory.Exists(dbDirectory))
                 {
                     Directory.CreateDirectory(dbDirectory!);
                     Console.WriteLine($"Created database directory: {dbDirectory}");
                 }
-                connectionString = $"Data Source={defaultDbPath}";
+                connectionString = $"Data Source={dbPath}";
             }
             else
             {
@@ -114,11 +121,22 @@ namespace PokemonBank.Api.Extensions
         {
             services.AddScoped<FileStorageService>(sp =>
             {
-                // Use user's Documents folder for Pokemon file storage (public data)
-                var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var defaultPath = Path.Combine(documentsPath, "Pokebank", "backup");
-                var configuredPath = config.GetSection("Vault").GetValue<string>("BasePath");
-                var basePath = string.IsNullOrWhiteSpace(configuredPath) ? defaultPath : configuredPath;
+                // Priorizar variable de entorno STORAGE_PATH para Electron
+                var envStoragePath = Environment.GetEnvironmentVariable("STORAGE_PATH");
+                string basePath;
+
+                if (!string.IsNullOrEmpty(envStoragePath))
+                {
+                    basePath = envStoragePath;
+                }
+                else
+                {
+                    // Use user's Documents folder for Pokemon file storage (public data) como fallback
+                    var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    var defaultPath = Path.Combine(documentsPath, "Pokebank", "backup");
+                    var configuredPath = config.GetSection("Vault").GetValue<string>("BasePath");
+                    basePath = string.IsNullOrWhiteSpace(configuredPath) ? defaultPath : configuredPath;
+                }
 
                 // Ensure the base directory exists
                 if (!Directory.Exists(basePath))
