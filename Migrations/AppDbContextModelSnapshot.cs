@@ -34,6 +34,9 @@ namespace PokemonBank.Api.Migrations
                     b.Property<DateTime>("ImportedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("OriginalFileName")
+                        .HasColumnType("TEXT");
+
                     b.Property<byte[]>("RawBlob")
                         .HasColumnType("BLOB");
 

@@ -12,8 +12,12 @@ namespace PokemonBank.Api.Endpoints
         public static IEndpointRouteBuilder MapPokemonEndpoints(this IEndpointRouteBuilder app)
         {
             // Admin endpoint to wipe the entire database (dangerous!)
-            app.MapPost("/admin/wipe-database", async (AppDbContext db) =>
+            app.MapPost("/admin/wipe-database", async (AppDbContext db, FileStorageService storage) =>
             {
+                // Get all files to delete their backups
+                var allFiles = await db.Files.ToListAsync();
+
+                // Remove all data from database
                 db.Pokemon.RemoveRange(db.Pokemon);
                 db.PokemonTags.RemoveRange(db.PokemonTags);
                 db.Stats.RemoveRange(db.Stats);
@@ -22,35 +26,86 @@ namespace PokemonBank.Api.Endpoints
                 db.Files.RemoveRange(db.Files);
                 db.Tags.RemoveRange(db.Tags);
                 await db.SaveChangesAsync();
-                return Results.Ok("Database wiped.");
+
+                // Delete all backup files
+                int deletedBackups = 0;
+                foreach (var file in allFiles)
+                {
+                    if (!string.IsNullOrEmpty(file.OriginalFileName))
+                    {
+                        try
+                        {
+                            var ext = Path.GetExtension(file.OriginalFileName);
+                            storage.DeleteBackup(file.OriginalFileName, ext);
+                            deletedBackups++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Could not delete backup for {file.OriginalFileName}: {ex.Message}");
+                        }
+                    }
+                }
+
+                return Results.Ok(new { Message = "Database wiped.", DeletedBackups = deletedBackups });
             })
             .WithName("WipeDatabase")
             .WithSummary("⚠️ ADMIN: Delete entire database")
             .WithDescription("DANGEROUS: Removes all Pokémon, files and data from the database. For development/testing only.")
             .WithTags("Admin")
             .Produces<string>(200);
-            // Eliminar solo de la base de datos (no toca archivos en disco)
-            app.MapDelete("/pokemon/{pokemonId:int}/database", async (int pokemonId, AppDbContext db) =>
+            // Eliminar de la base de datos y archivo principal (conserva backup)
+            app.MapDelete("/pokemon/{pokemonId:int}/database", async (int pokemonId, AppDbContext db, FileStorageService storage) =>
             {
                 var poke = await db.Pokemon.FirstOrDefaultAsync(x => x.Id == pokemonId);
                 if (poke == null) return Results.NotFound();
 
+                // Obtener el archivo asociado antes de eliminar
+                var file = await db.Files.FirstOrDefaultAsync(f => f.Id == poke.FileId);
+
+                // Eliminar datos relacionados
                 var stats = await db.Stats.Where(s => s.PokemonId == pokemonId).ToListAsync();
                 db.Stats.RemoveRange(stats);
                 var moves = await db.Moves.Where(m => m.PokemonId == pokemonId).ToListAsync();
                 db.Moves.RemoveRange(moves);
                 var relearnMoves = await db.RelearnMoves.Where(rm => rm.PokemonId == pokemonId).ToListAsync();
                 db.RelearnMoves.RemoveRange(relearnMoves);
-                var file = await db.Files.FirstOrDefaultAsync(f => f.Id == poke.FileId);
-                if (file != null)
-                    db.Files.Remove(file);
+
+                // Eliminar Pokemon
                 db.Pokemon.Remove(poke);
+
+                // Eliminar archivo físico principal si existe (preserva backup)
+                bool fileDeleted = false;
+                if (file != null)
+                {
+                    Console.WriteLine($"Attempting to delete main file: {file.FileName}");
+                    Console.WriteLine($"Stored path: {file.StoredPath}");
+                    Console.WriteLine($"File exists: {File.Exists(file.StoredPath)}");
+
+                    try
+                    {
+                        storage.Delete(file.StoredPath);
+                        fileDeleted = true;
+                        Console.WriteLine($"Main file deleted successfully: {file.StoredPath} (backup preserved)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Could not delete main file {file.StoredPath}: {ex.Message}");
+                        Console.WriteLine($"Exception details: {ex}");
+                    }
+
+                    db.Files.Remove(file);
+                }
+                else
+                {
+                    Console.WriteLine("No file record found for this Pokemon");
+                }
+
                 await db.SaveChangesAsync();
-                return Results.Ok(new { Deleted = true, BackupDeleted = false });
+                return Results.Ok(new { Deleted = true, FileDeleted = fileDeleted, BackupPreserved = true });
             })
             .WithName("DeletePokemonFromDatabase")
-            .WithSummary("Delete a Pokémon from the database")
-            .WithDescription("Removes the Pokémon and all its related data from the database, but preserves the file on disk.")
+            .WithSummary("Delete a Pokémon and its main file (preserves backup)")
+            .WithDescription("Removes the Pokémon, all its related data from the database, and deletes the main file on disk. Backup file is preserved.")
             .WithTags("Pokemon", "Admin")
             .Produces<object>(200)
             .Produces(404);
@@ -61,21 +116,66 @@ namespace PokemonBank.Api.Endpoints
                 var poke = await db.Pokemon.FirstOrDefaultAsync(x => x.Id == pokemonId);
                 if (poke == null) return Results.NotFound();
 
+                // Obtener el archivo asociado antes de eliminar
+                var file = await db.Files.FirstOrDefaultAsync(f => f.Id == poke.FileId);
+
+                // Eliminar datos relacionados
                 var stats = await db.Stats.Where(s => s.PokemonId == pokemonId).ToListAsync();
                 db.Stats.RemoveRange(stats);
                 var moves = await db.Moves.Where(m => m.PokemonId == pokemonId).ToListAsync();
                 db.Moves.RemoveRange(moves);
                 var relearnMoves = await db.RelearnMoves.Where(rm => rm.PokemonId == pokemonId).ToListAsync();
                 db.RelearnMoves.RemoveRange(relearnMoves);
-                var file = await db.Files.FirstOrDefaultAsync(f => f.Id == poke.FileId);
+
+                // Eliminar Pokemon
+                db.Pokemon.Remove(poke);
+
+                // Eliminar archivo físico principal si existe
+                bool fileDeleted = false;
+                bool backupDeleted = false;
                 if (file != null)
                 {
-                    try { storage.Delete(file.StoredPath); } catch { }
+                    Console.WriteLine($"Attempting to delete file: {file.FileName}");
+                    Console.WriteLine($"Stored path: {file.StoredPath}");
+                    Console.WriteLine($"File exists: {File.Exists(file.StoredPath)}");
+
+                    try
+                    {
+                        storage.Delete(file.StoredPath);
+                        fileDeleted = true;
+                        Console.WriteLine($"Physical file deleted successfully: {file.StoredPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Could not delete physical file {file.StoredPath}: {ex.Message}");
+                        Console.WriteLine($"Exception details: {ex}");
+                    }
+
+                    // Eliminar backup si existe
+                    if (!string.IsNullOrEmpty(file.OriginalFileName))
+                    {
+                        try
+                        {
+                            var ext = Path.GetExtension(file.OriginalFileName);
+                            storage.DeleteBackup(file.OriginalFileName, ext);
+                            backupDeleted = true;
+                            Console.WriteLine($"Backup file deleted successfully: {file.OriginalFileName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Could not delete backup file {file.OriginalFileName}: {ex.Message}");
+                        }
+                    }
+
                     db.Files.Remove(file);
                 }
-                db.Pokemon.Remove(poke);
+                else
+                {
+                    Console.WriteLine("No file record found for this Pokemon");
+                }
+
                 await db.SaveChangesAsync();
-                return Results.Ok(new { Deleted = true, BackupDeleted = true });
+                return Results.Ok(new { Deleted = true, FileDeleted = fileDeleted, BackupDeleted = backupDeleted, FileName = file?.FileName });
             })
             .WithName("DeletePokemonAndBackup")
             .WithSummary("Delete a Pokémon completely (database + file)")

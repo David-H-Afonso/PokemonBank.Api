@@ -55,6 +55,7 @@ namespace PokemonBank.Api.Infrastructure.Services
                 {
                     Sha256 = sha,
                     FileName = fileName,
+                    OriginalFileName = fileName, // NUEVO: Guardar nombre original para backup
                     Format = ext,
                     Size = bytes.LongLength,
                     StoredPath = string.Empty // Se asigna tras guardar
@@ -264,7 +265,8 @@ namespace PokemonBank.Api.Infrastructure.Services
                 if (storageService != null)
                 {
                     var pokemonName = PkHexStringService.GetSpeciesName(pk.Species) ?? "Pokemon";
-                    var storedPath = storageService.Save(sha, ext, bytes, pokemonName, DateTime.UtcNow);
+                    // NUEVO: Pasar el nombre del archivo original para el backup
+                    var storedPath = storageService.Save(sha, ext, bytes, pokemonName, DateTime.UtcNow, fileName);
                     file.StoredPath = storedPath;
                     Console.WriteLine($"Saved file: {storedPath}, Size: {bytes.Length} bytes, SHA256: {sha}");
 

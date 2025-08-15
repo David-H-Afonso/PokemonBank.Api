@@ -239,7 +239,8 @@ namespace PokemonBank.Api.Endpoints
                 int id,
                 int expectedFileCount,
                 bool includeBackup,
-                AppDbContext db) =>
+                AppDbContext db,
+                FileStorageService storage) =>
             {
                 try
                 {
@@ -358,7 +359,27 @@ namespace PokemonBank.Api.Endpoints
 
                                     if (!isInBackup || includeBackup)
                                     {
-                                        File.Delete(physicalFile);
+                                        if (isInBackup && includeBackup)
+                                        {
+                                            // Use DeleteBackup method for backup files
+                                            var fileName = Path.GetFileName(physicalFile);
+                                            var ext = Path.GetExtension(physicalFile);
+                                            try
+                                            {
+                                                storage.DeleteBackup(fileName, ext);
+                                            }
+                                            catch (Exception)
+                                            {
+                                                // Fallback to direct deletion if DeleteBackup fails
+                                                File.Delete(physicalFile);
+                                                Console.WriteLine($"Used fallback deletion for backup file: {physicalFile}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Regular file deletion for non-backup files
+                                            File.Delete(physicalFile);
+                                        }
                                         result.DeletedPhysicalFiles.Add(physicalFile);
                                     }
                                     else

@@ -5,6 +5,7 @@ namespace PokemonBank.Api.Domain.Entities
         public int Id { get; set; }
         public required string Sha256 { get; set; }
         public required string FileName { get; set; }
+        public string? OriginalFileName { get; set; } // Nombre del archivo original para backup
         public required string Format { get; set; } // pk1..pk9, etc.
         public long Size { get; set; }
         public required string StoredPath { get; set; }
