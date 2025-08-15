@@ -1,6 +1,26 @@
-# Beast Vault (Personal)
+# Beast Vault
 
-A local-first **Beast Vault** to import, store, compare, and browse Pokémon from `.pk*` files across **all generations** (Gen 1 → Gen 9, plus supported spin-offs). Uses **PKHeX.Core** for parsing and name resolution, **SQLite** for storage, and exposes a clean **REST API**. Designed to be extended with a React/TypeScript UI.
+A local-first **Beast Vault** to import, store, compare, and browse Pokémon data from `.pk*` files across all game generations (Gen 1 → Gen 9, plus supported spin-offs).
+
+This tool works only with legitimately obtained backup files and is **not an official Pokémon product**. All Pokémon references are for descriptive purposes only and are trademarks of their respective owners.
+
+Uses **PKHeX.Core** for parsing and name resolution, **SQLite** for storage, and exposes a clean **REST API**.
+
+A companion React/TypeScript UI is available at [BeastVault.Front](https://github.com/David-H-Afonso/BeastVault.Front) to be used with an UI.
+
+## Legal Disclaimer
+
+**Beast Vault** is an independent, non-commercial, open-source project for personal use. It is **NOT** affiliated, associated, endorsed, sponsored, or approved by Nintendo, The Pokémon Company, Game Freak, Creatures Inc., or any of their subsidiaries, affiliates, or partners. All trademarks, service marks, trade names, product names, and trade dress mentioned or referenced within this project are the property of their respective owners.
+
+This software is **not an official Pokémon product** and does not attempt to simulate, emulate, reproduce, replace, or provide any product, service, or functionality of official Pokémon games, services, or hardware. Any similarity to proprietary formats, terminology, or concepts is purely for descriptive purposes and does not imply endorsement or association.
+
+**Beast Vault** is intended solely for lawful, personal-use management and storage of legitimately obtained Pokémon data files (e.g., `.pk*` formats) that belong to the user. The project does **NOT**:
+
+- Provide or facilitate the creation, modification, or acquisition of Pokémon.
+- Distribute or include copyrighted game assets, code, or data belonging to Nintendo or The Pokémon Company.
+- Encourage, promote, or support any activity that violates applicable laws, the Pokémon games’ End User License Agreements (EULAs), or the terms of service of official products or platforms.
+
+Use of this software is entirely at the user’s own risk. The authors and contributors disclaim any and all responsibility and liability for misuse, infringement, or violation of third-party rights. By using this software, the user agrees to comply with all applicable laws, regulations, and contractual obligations.
 
 ---
 
@@ -229,4 +249,13 @@ Create a **personal Beast Vault** that:
 
 ## License
 
-Personal use. PKHeX.Core & dependencies retain their respective licenses.
+This project is licensed under the terms of the [GNU General Public License v3.0 (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html).
+
+### Third-party dependencies
+
+- **PKHeX.Core**: [MIT License](https://github.com/kwsch/PKHeX/blob/master/LICENSE.txt)
+- **SQLite**: [Public Domain](https://www.sqlite.org/copyright.html)
+- **Swashbuckle/Swagger UI**: [MIT License](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/LICENSE)
+- **.NET 9 SDK & ASP.NET Core**: [MIT License](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT)
+
+See the `LICENSE.md` file for full license texts and details.
