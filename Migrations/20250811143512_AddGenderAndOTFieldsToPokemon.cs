@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PokemonBank.Api.Migrations
+namespace BeastVault.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddGenderAndOTFieldsToPokemon : Migration

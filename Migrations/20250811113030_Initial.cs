@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace PokemonBank.Api.Migrations
+namespace BeastVault.Api.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
-namespace PokemonBank.Api.Endpoints
+namespace BeastVault.Api.Endpoints
 {
     public static class HealthEndpoints
     {

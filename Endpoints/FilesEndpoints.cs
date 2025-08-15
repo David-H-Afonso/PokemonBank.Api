@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using PokemonBank.Api.Infrastructure;
-using PokemonBank.Api.Infrastructure.Services;
+using BeastVault.Api.Infrastructure;
+using BeastVault.Api.Infrastructure.Services;
 
-namespace PokemonBank.Api.Endpoints
+namespace BeastVault.Api.Endpoints
 {
     public static class FilesEndpoints
     {

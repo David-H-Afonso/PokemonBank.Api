@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using PKHeX.Core;
-using PokemonBank.Api.Domain.Entities;
+using BeastVault.Api.Domain.Entities;
 
 
-namespace PokemonBank.Api.Infrastructure.Services
+namespace BeastVault.Api.Infrastructure.Services
 {
     public class PkhexCoreParser
     {

@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
-using PokemonBank.Api.Domain.Entities;
-using PokemonBank.Api.Infrastructure;
+using BeastVault.Api.Domain.Entities;
+using BeastVault.Api.Infrastructure;
 
-namespace PokemonBank.Api.Infrastructure.Services
+namespace BeastVault.Api.Infrastructure.Services
 {
     /// <summary>
     /// Service to monitor and automatically import Pokemon files from the Documents/BeastVault directory (excluding backup folder)

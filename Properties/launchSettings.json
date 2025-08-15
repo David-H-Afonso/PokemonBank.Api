@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "PokemonBank.Api": {
+    "BeastVault.Api": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

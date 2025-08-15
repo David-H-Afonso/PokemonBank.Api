@@ -1,6 +1,6 @@
 using PKHeX.Core;
 
-namespace PokemonBank.Api.Infrastructure.Services
+namespace BeastVault.Api.Infrastructure.Services
 {
     /// <summary>
     /// Helper service to get localized names from PKHeX Core strings

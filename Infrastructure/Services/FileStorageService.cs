@@ -1,7 +1,7 @@
 
 using System.Security.Cryptography;
 
-namespace PokemonBank.Api.Infrastructure.Services
+namespace BeastVault.Api.Infrastructure.Services
 {
     public class FileStorageService
     {
@@ -60,14 +60,14 @@ namespace PokemonBank.Api.Infrastructure.Services
             // Verificar si ya existe un backup con el mismo contenido (mismo SHA256)
             var incomingHash = ComputeSha256(bytes);
             var existingFiles = Directory.GetFiles(backupDir, $"*.{formatFolder}");
-            
+
             foreach (var existingFile in existingFiles)
             {
                 try
                 {
                     var existingBytes = File.ReadAllBytes(existingFile);
                     var existingHash = ComputeSha256(existingBytes);
-                    
+
                     if (existingHash == incomingHash)
                     {
                         Console.WriteLine($"Backup already exists with same content: {existingFile} (skipping duplicate)");

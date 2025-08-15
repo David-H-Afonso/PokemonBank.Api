@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using PokemonBank.Api.Infrastructure;
-using PokemonBank.Api.Endpoints;
-using PokemonBank.Api.Extensions;
+using BeastVault.Api.Infrastructure;
+using BeastVault.Api.Endpoints;
+using BeastVault.Api.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PokemonBank.Api.Infrastructure.Services;
+using BeastVault.Api.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAppDbContext(builder.Configuration);
-builder.Services.AddPokemonBankServices(builder.Configuration);
+builder.Services.AddBeastVaultServices(builder.Configuration);
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
@@ -57,11 +57,11 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
-    var storage = scope.ServiceProvider.GetRequiredService<PokemonBank.Api.Infrastructure.Services.FileStorageService>();
+    var storage = scope.ServiceProvider.GetRequiredService<BeastVault.Api.Infrastructure.Services.FileStorageService>();
     storage.EnsureVault();
 
     // Automatically scan for new files on startup
-    var fileWatcher = scope.ServiceProvider.GetRequiredService<PokemonBank.Api.Infrastructure.Services.FileWatcherService>();
+    var fileWatcher = scope.ServiceProvider.GetRequiredService<BeastVault.Api.Infrastructure.Services.FileWatcherService>();
     var scanResult = await fileWatcher.ScanAndImportNewFilesAsync();
     if (scanResult.NewlyImported.Any())
     {
@@ -71,7 +71,7 @@ using (var scope = app.Services.CreateScope())
 
 await app.RunAsync();
 
-namespace PokemonBank.Api.Extensions
+namespace BeastVault.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
@@ -80,7 +80,7 @@ namespace PokemonBank.Api.Extensions
             // Usar siempre las mismas rutas que Electron para consistencia
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var defaultDbPath = Path.Combine(appDataPath, "BeastVault", "beastvault.db");
-            
+
             // Priorizar variable de entorno DB_PATH para Electron, pero usar ruta consistente por defecto
             var envDbPath = Environment.GetEnvironmentVariable("DB_PATH");
             string dbPath = !string.IsNullOrEmpty(envDbPath) ? envDbPath : defaultDbPath;
@@ -110,14 +110,14 @@ namespace PokemonBank.Api.Extensions
             });
             return services;
         }
-        public static IServiceCollection AddPokemonBankServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddBeastVaultServices(this IServiceCollection services, IConfiguration config)
         {
             services.AddScoped<FileStorageService>(sp =>
             {
                 // Usar siempre las mismas rutas que Electron para consistencia
                 var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 var defaultStoragePath = Path.Combine(documentsPath, "BeastVault");
-                
+
                 // Priorizar variable de entorno STORAGE_PATH para Electron, pero usar ruta consistente por defecto
                 var envStoragePath = Environment.GetEnvironmentVariable("STORAGE_PATH");
                 string basePath = !string.IsNullOrEmpty(envStoragePath) ? envStoragePath : defaultStoragePath;
@@ -131,8 +131,8 @@ namespace PokemonBank.Api.Extensions
 
                 return new FileStorageService(basePath);
             });
-            services.AddScoped<PokemonBank.Api.Infrastructure.Services.PkhexCoreParser>();
-            services.AddScoped<PokemonBank.Api.Infrastructure.Services.FileWatcherService>();
+            services.AddScoped<BeastVault.Api.Infrastructure.Services.PkhexCoreParser>();
+            services.AddScoped<BeastVault.Api.Infrastructure.Services.FileWatcherService>();
             return services;
         }
     }

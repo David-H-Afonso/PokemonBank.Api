@@ -1,6 +1,6 @@
-# Pokémon Bank (Personal)
+# Beast Vault (Personal)
 
-A local-first **Pokémon bank** to import, store, compare, and browse Pokémon from `.pk*` files across **all generations** (Gen 1 → Gen 9, plus supported spin-offs). Uses **PKHeX.Core** for parsing and name resolution, **SQLite** for storage, and exposes a clean **REST API**. Designed to be extended with a React/TypeScript UI.
+A local-first **Beast Vault** to import, store, compare, and browse Pokémon from `.pk*` files across **all generations** (Gen 1 → Gen 9, plus supported spin-offs). Uses **PKHeX.Core** for parsing and name resolution, **SQLite** for storage, and exposes a clean **REST API**. Designed to be extended with a React/TypeScript UI.
 
 ---
 
@@ -26,8 +26,8 @@ A local-first **Pokémon bank** to import, store, compare, and browse Pokémon f
 ### 2) Clone
 
 ```bash
-git clone https://github.com/username/pokemon-bank.git
-cd pokemon-bank/PokemonBank.Api
+git clone https://github.com/username/beast-vault.git
+cd beast-vault/BeastVault.Api
 ```
 
 ### 3) Restore & build
@@ -84,7 +84,7 @@ http://localhost:5111/swagger
 ## Project structure
 
 ```
-PokemonBank.Api/
+BeastVault.Api/
 ├── Contracts/           # DTOs
 ├── Domain/              # Entities (PokemonEntity, StatsEntity, etc.)
 ├── Endpoints/           # Minimal API endpoints (Import, Health, Pokemon, Compare)
@@ -102,7 +102,7 @@ PokemonBank.Api/
 ├── ReferenceData/       # (Removed) Old enums/data, now replaced by PKHeX.Core
 ├── appsettings.json
 ├── Program.cs
-├── PokemonBank.Api.csproj
+├── BeastVault.Api.csproj
 ├── README.md
 ```
 
@@ -111,17 +111,17 @@ The application uses two separate directories for optimal security and usability
 
 **Private Data (Hidden from user):**
 
-- **Database:** `%LocalAppData%\Pokebank\storage\pokemonbank.db`
+- **Database:** `%LocalAppData%\BeastVault\storage\beastvault.db`
 
 **Public Data (User accessible):**
 
-- **Pokemon Files:** `%UserProfile%\Documents\Pokebank\backup\`
+- **Pokemon Files:** `%UserProfile%\Documents\BeastVault\`
 
 **📁 Automatic File Detection:**
 The application automatically monitors the Documents folder and:
 
 - Scans for new Pokemon files on startup
-- Supports drag-and-drop workflow (just copy files to Documents/Pokebank/backup)
+- Supports drag-and-drop workflow (just copy files to Documents/BeastVault)
 - Automatically imports new files and skips duplicates
 - Works with subdirectories
 
@@ -148,7 +148,7 @@ You can override these paths in `appsettings.json` if needed:
     "BasePath": "C:\\CustomPath\\backup"
   },
   "ConnectionStrings": {
-    "Default": "Data Source=C:\\CustomPath\\pokemonbank.db"
+    "Default": "Data Source=C:\\CustomPath\\beastvault.db"
   }
 }
 ```
@@ -186,7 +186,7 @@ You can override these paths in `appsettings.json` if needed:
 
 ### General
 
-Create a **personal Pokémon bank** that:
+Create a **personal Beast Vault** that:
 
 - Imports Pokémon from `.pk*` files obtained legally.
 - Displays detailed information in a user-friendly format.

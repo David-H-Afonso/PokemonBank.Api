@@ -1,4 +1,4 @@
-namespace PokemonBank.Api.Domain.Entities
+namespace BeastVault.Api.Domain.Entities
 {
     public class FileEntity
     {

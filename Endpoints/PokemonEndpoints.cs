@@ -1,11 +1,11 @@
 
 using Microsoft.EntityFrameworkCore;
-using PokemonBank.Api.Contracts;
-using PokemonBank.Api.Infrastructure;
-using PokemonBank.Api.Infrastructure.Services;
+using BeastVault.Api.Contracts;
+using BeastVault.Api.Infrastructure;
+using BeastVault.Api.Infrastructure.Services;
 
 
-namespace PokemonBank.Api.Endpoints
+namespace BeastVault.Api.Endpoints
 {
     public static class PokemonEndpoints
     {
@@ -253,7 +253,7 @@ namespace PokemonBank.Api.Endpoints
                 if (p == null) return Results.NotFound();
                 var stats = await db.Stats.AsNoTracking().FirstOrDefaultAsync(x => x.PokemonId == p.Id);
                 var moves = await db.Moves.AsNoTracking().Where(x => x.PokemonId == p.Id).OrderBy(x => x.Slot).ToListAsync();
-                var text = PokemonBank.Api.Domain.ValueObjects.ShowdownExport.From(p, stats, moves);
+                var text = BeastVault.Api.Domain.ValueObjects.ShowdownExport.From(p, stats, moves);
                 return Results.Text(text);
             })
             .WithName("ExportPokemonShowdown")

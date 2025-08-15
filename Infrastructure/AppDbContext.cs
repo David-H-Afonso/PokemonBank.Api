@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PokemonBank.Api.Domain.Entities;
+using BeastVault.Api.Domain.Entities;
 
-namespace PokemonBank.Api.Infrastructure
+namespace BeastVault.Api.Infrastructure
 {
     public class AppDbContext : DbContext
     {

@@ -1,6 +1,6 @@
-using PokemonBank.Api.Domain.Entities;
+using BeastVault.Api.Domain.Entities;
 
-namespace PokemonBank.Api.Infrastructure.Services
+namespace BeastVault.Api.Infrastructure.Services
 {
     /// <summary>
     /// Service to compare two Pokemon entities and identify differences

@@ -1,8 +1,8 @@
 using System.Text;
-using PokemonBank.Api.Domain.Entities;
-using PokemonBank.Api.Infrastructure.Services;
+using BeastVault.Api.Domain.Entities;
+using BeastVault.Api.Infrastructure.Services;
 
-namespace PokemonBank.Api.Domain.ValueObjects
+namespace BeastVault.Api.Domain.ValueObjects
 {
     public static class ShowdownExport
     {

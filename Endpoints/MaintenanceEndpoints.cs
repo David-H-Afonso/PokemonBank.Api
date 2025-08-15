@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using PokemonBank.Api.Infrastructure;
-using PokemonBank.Api.Infrastructure.Services;
+using BeastVault.Api.Infrastructure;
+using BeastVault.Api.Infrastructure.Services;
 
-namespace PokemonBank.Api.Endpoints
+namespace BeastVault.Api.Endpoints
 {
     public static class MaintenanceEndpoints
     {
@@ -164,15 +164,15 @@ namespace PokemonBank.Api.Endpoints
 
                     // Find all physical files in user area and backup that match
                     var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    var pokebankPath = Path.Combine(documentsPath, "BeastVault");
-                    var backupPath = Path.Combine(pokebankPath, "backup");
+                    var beastVaultPath = Path.Combine(documentsPath, "BeastVault");
+                    var backupPath = Path.Combine(beastVaultPath, "backup");
 
                     var physicalFiles = new List<string>();
                     var backupFiles = new List<string>();
 
-                    if (Directory.Exists(pokebankPath))
+                    if (Directory.Exists(beastVaultPath))
                     {
-                        var allFiles = Directory.GetFiles(pokebankPath, "*.*", SearchOption.AllDirectories)
+                        var allFiles = Directory.GetFiles(beastVaultPath, "*.*", SearchOption.AllDirectories)
                             .Where(f => IsPokemonFile(f))
                             .ToList();
 
@@ -263,15 +263,15 @@ namespace PokemonBank.Api.Endpoints
 
                     // Count actual physical files for verification
                     var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    var pokebankPath = Path.Combine(documentsPath, "BeastVault");
-                    var backupPath = Path.Combine(pokebankPath, "backup");
+                    var beastVaultPath = Path.Combine(documentsPath, "BeastVault");
+                    var backupPath = Path.Combine(beastVaultPath, "backup");
 
                     var physicalFiles = new List<string>();
                     var backupFiles = new List<string>();
 
-                    if (Directory.Exists(pokebankPath))
+                    if (Directory.Exists(beastVaultPath))
                     {
-                        var allFiles = Directory.GetFiles(pokebankPath, "*.*", SearchOption.AllDirectories)
+                        var allFiles = Directory.GetFiles(beastVaultPath, "*.*", SearchOption.AllDirectories)
                             .Where(f => IsPokemonFile(f))
                             .ToList();
 
@@ -340,9 +340,9 @@ namespace PokemonBank.Api.Endpoints
                     }
 
                     // Remove physical files
-                    if (Directory.Exists(pokebankPath))
+                    if (Directory.Exists(beastVaultPath))
                     {
-                        var allFiles = Directory.GetFiles(pokebankPath, "*.*", SearchOption.AllDirectories)
+                        var allFiles = Directory.GetFiles(beastVaultPath, "*.*", SearchOption.AllDirectories)
                             .Where(f => IsPokemonFile(f))
                             .ToList();
 

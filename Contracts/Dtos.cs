@@ -1,7 +1,7 @@
-using PokemonBank.Api.Domain.Entities;
+using BeastVault.Api.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace PokemonBank.Api.Contracts
+namespace BeastVault.Api.Contracts
 {
     /// <summary>
     /// Result of importing a PKM file
