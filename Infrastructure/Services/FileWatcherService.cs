@@ -6,7 +6,7 @@ using PokemonBank.Api.Infrastructure;
 namespace PokemonBank.Api.Infrastructure.Services
 {
     /// <summary>
-    /// Service to monitor and automatically import Pokemon files from the Documents/Pokebank directory (excluding backup folder)
+    /// Service to monitor and automatically import Pokemon files from the Documents/BeastVault directory (excluding backup folder)
     /// </summary>
     public class FileWatcherService
     {
@@ -22,9 +22,9 @@ namespace PokemonBank.Api.Infrastructure.Services
             _parser = parser;
             _storage = storage;
 
-            // Watch the Documents/Pokebank directory (user's organization area)
+            // Watch the Documents/BeastVault directory (user's organization area)
             var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            _watchPath = Path.Combine(documentsPath, "Pokebank");
+            _watchPath = Path.Combine(documentsPath, "BeastVault");
             _backupPath = Path.Combine(_watchPath, "backup");
 
             // Ensure the directories exist

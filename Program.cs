@@ -77,20 +77,13 @@ namespace PokemonBank.Api.Extensions
     {
         public static IServiceCollection AddAppDbContext(this IServiceCollection services, IConfiguration config)
         {
-            // Priorizar variable de entorno DB_PATH para Electron
+            // Usar siempre las mismas rutas que Electron para consistencia
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var defaultDbPath = Path.Combine(appDataPath, "BeastVault", "beastvault.db");
+            
+            // Priorizar variable de entorno DB_PATH para Electron, pero usar ruta consistente por defecto
             var envDbPath = Environment.GetEnvironmentVariable("DB_PATH");
-            string dbPath;
-
-            if (!string.IsNullOrEmpty(envDbPath))
-            {
-                dbPath = envDbPath;
-            }
-            else
-            {
-                // Use LocalAppData for database (private data) como fallback
-                var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                dbPath = Path.Combine(localAppData, "Pokebank", "storage", "pokemonbank.db");
-            }
+            string dbPath = !string.IsNullOrEmpty(envDbPath) ? envDbPath : defaultDbPath;
 
             var configuredCs = config.GetConnectionString("Default");
 
@@ -121,28 +114,19 @@ namespace PokemonBank.Api.Extensions
         {
             services.AddScoped<FileStorageService>(sp =>
             {
-                // Priorizar variable de entorno STORAGE_PATH para Electron
+                // Usar siempre las mismas rutas que Electron para consistencia
+                var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                var defaultStoragePath = Path.Combine(documentsPath, "BeastVault");
+                
+                // Priorizar variable de entorno STORAGE_PATH para Electron, pero usar ruta consistente por defecto
                 var envStoragePath = Environment.GetEnvironmentVariable("STORAGE_PATH");
-                string basePath;
-
-                if (!string.IsNullOrEmpty(envStoragePath))
-                {
-                    basePath = envStoragePath;
-                }
-                else
-                {
-                    // Use user's Documents folder for Pokemon file storage (public data) como fallback
-                    var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    var defaultPath = Path.Combine(documentsPath, "Pokebank", "backup");
-                    var configuredPath = config.GetSection("Vault").GetValue<string>("BasePath");
-                    basePath = string.IsNullOrWhiteSpace(configuredPath) ? defaultPath : configuredPath;
-                }
+                string basePath = !string.IsNullOrEmpty(envStoragePath) ? envStoragePath : defaultStoragePath;
 
                 // Ensure the base directory exists
                 if (!Directory.Exists(basePath))
                 {
                     Directory.CreateDirectory(basePath);
-                    Console.WriteLine($"Created PokeBank backup directory: {basePath}");
+                    Console.WriteLine($"Created BeastVault directory: {basePath}");
                 }
 
                 return new FileStorageService(basePath);
