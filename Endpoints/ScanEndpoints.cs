@@ -12,9 +12,9 @@ namespace PokemonBank.Api.Endpoints
 
             group.MapPost("/directory", ScanDirectory)
                 .WithName("ScanDirectory")
-                .WithSummary("Scan Documents/Pokebank/storage for new Pokemon files")
+                .WithSummary("Scan Documents/BeastVault for new Pokemon files")
                 .WithDescription(@"
-Scans the user's Documents/Pokebank/storage directory for new Pokemon files and automatically imports them.
+Scans the user's Documents/BeastVault directory for new Pokemon files and automatically imports them.
 Files already in the database (based on SHA256 hash) will be skipped.
 
 Supported file formats:
@@ -27,7 +27,7 @@ Supported file formats:
             group.MapGet("/status", GetScanStatus)
                 .WithName("GetScanStatus")
                 .WithSummary("Get information about the scan directory")
-                .WithDescription("Returns information about the Documents/Pokebank/storage directory and file counts.");
+                .WithDescription("Returns information about the Documents/BeastVault directory and file counts.");
         }
 
         private static async Task<IResult> ScanDirectory(
@@ -72,7 +72,7 @@ Supported file formats:
             try
             {
                 var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var watchPath = Path.Combine(documentsPath, "Pokebank", "storage");
+                var watchPath = Path.Combine(documentsPath, "BeastVault");
 
                 if (!Directory.Exists(watchPath))
                 {

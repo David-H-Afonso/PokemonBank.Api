@@ -86,7 +86,7 @@ namespace PokemonBank.Api.Endpoints
 
                     // Check file system status
                     var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    var backupPath = Path.Combine(documentsPath, "Pokebank", "backup");
+                    var backupPath = Path.Combine(documentsPath, "BeastVault", "backup");
 
                     if (Directory.Exists(backupPath))
                     {
@@ -164,7 +164,7 @@ namespace PokemonBank.Api.Endpoints
 
                     // Find all physical files in user area and backup that match
                     var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    var pokebankPath = Path.Combine(documentsPath, "Pokebank");
+                    var pokebankPath = Path.Combine(documentsPath, "BeastVault");
                     var backupPath = Path.Combine(pokebankPath, "backup");
 
                     var physicalFiles = new List<string>();
@@ -263,7 +263,7 @@ namespace PokemonBank.Api.Endpoints
 
                     // Count actual physical files for verification
                     var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    var pokebankPath = Path.Combine(documentsPath, "Pokebank");
+                    var pokebankPath = Path.Combine(documentsPath, "BeastVault");
                     var backupPath = Path.Combine(pokebankPath, "backup");
 
                     var physicalFiles = new List<string>();

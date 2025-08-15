@@ -180,7 +180,7 @@ $RECYCLE.BIN/
 # VS Code settings
 .history/
 
-# Pokemon Bank Data (use Documents/PokeBank instead)
+# Pokemon Bank Data (use Documents/BeastVault instead)
 Storage/
 *.db
 *.db-shm
