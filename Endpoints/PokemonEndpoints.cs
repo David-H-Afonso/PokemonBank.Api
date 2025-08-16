@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using BeastVault.Api.Contracts;
 using BeastVault.Api.Infrastructure;
 using BeastVault.Api.Infrastructure.Services;
+using BeastVault.Api.Domain.Services;
+using BeastVault.Api.Domain.ValueObjects;
 
 
 namespace BeastVault.Api.Endpoints
@@ -186,6 +188,49 @@ namespace BeastVault.Api.Endpoints
 
             // ...resto de endpoints (get, patch, etc.)...
 
+            // Modern advanced Pokemon query endpoint
+            app.MapGet("/pokemon/advanced", async (AppDbContext db, [AsParameters] AdvancedPokemonQuery q) =>
+            {
+                var baseQuery = db.Pokemon.AsNoTracking().AsQueryable();
+                
+                // Apply advanced filtering and sorting
+                var query = PokemonQueryService.BuildQuery(baseQuery, q);
+                
+                var total = await query.CountAsync();
+                var items = await query
+                    .Skip(q.Skip)
+                    .Take(q.Take)
+                    .Select(p => new PokemonListItemDto
+                    {
+                        Id = p.Id,
+                        SpeciesId = p.SpeciesId,
+                        Form = p.Form,
+                        Nickname = p.Nickname,
+                        Level = p.Level,
+                        IsShiny = p.IsShiny,
+                        BallId = p.BallId,
+                        TeraType = p.TeraType,
+                        SpriteKey = p.SpriteKey
+                    })
+                    .ToListAsync();
+
+                // Get query statistics for monitoring
+                var stats = PokemonQueryService.GetQueryStats(q);
+
+                return Results.Ok(new 
+                { 
+                    Items = items, 
+                    Total = total,
+                    Stats = stats
+                });
+            })
+            .WithName("GetAdvancedPokemonList")
+            .WithSummary("Get Pokemon with advanced filtering, sorting and pagination")
+            .WithDescription("Advanced endpoint with comprehensive filtering by types, generations, stats, and flexible sorting options.")
+            .WithTags("Pokemon")
+            .Produces<object>(200);
+
+            // Legacy Pokemon endpoint (for backward compatibility)
             app.MapGet("/pokemon", async (AppDbContext db, [AsParameters] PokemonQuery q) =>
             {
                 var query = db.Pokemon.AsNoTracking().AsQueryable();
@@ -226,10 +271,45 @@ namespace BeastVault.Api.Endpoints
                 return Results.Ok(new PagedResult<PokemonListItemDto>(items, total));
             })
             .WithName("GetPokemonList")
-            .WithSummary("Get a paginated list of Pokémon")
-            .WithDescription("Returns a paginated list of Pokémon with optional filters by species, shininess, pokeball, origin game, etc.")
-            .WithTags("Pokemon")
+            .WithSummary("Get a paginated list of Pokémon (Legacy)")
+            .WithDescription("Legacy endpoint for backward compatibility. Use /pokemon/advanced for more features.")
+            .WithTags("Pokemon", "Legacy")
             .Produces<PagedResult<PokemonListItemDto>>(200);
+
+            // Metadata endpoint for frontend helpers
+            app.MapGet("/pokemon/metadata", () =>
+            {
+                var types = PokemonGameInfoService.GetAllTypes().ToList();
+                var generations = Enumerable.Range(1, 9).ToList();
+                var genders = new[]
+                {
+                    new { Id = 0, Name = "Unknown" },
+                    new { Id = 1, Name = "Male" },
+                    new { Id = 2, Name = "Female" }
+                };
+                var sortFields = Enum.GetValues<PokemonSortField>()
+                    .Select(f => new { Name = f.ToString(), Value = (int)f })
+                    .ToList();
+                var typeFilterModes = Enum.GetValues<TypeFilterMode>()
+                    .Select(m => new { Name = m.ToString(), Value = (int)m })
+                    .ToList();
+
+                return Results.Ok(new
+                {
+                    Types = types,
+                    Generations = generations,
+                    Genders = genders,
+                    SortFields = sortFields,
+                    TypeFilterModes = typeFilterModes,
+                    DefaultPageSize = 50,
+                    MaxPageSize = 500
+                });
+            })
+            .WithName("GetPokemonMetadata")
+            .WithSummary("Get metadata for Pokemon filtering and sorting")
+            .WithDescription("Returns available options for types, generations, sort fields, and other filter metadata.")
+            .WithTags("Pokemon", "Metadata")
+            .Produces<object>(200);
 
             app.MapGet("/pokemon/{id:int}", async (int id, AppDbContext db) =>
             {
