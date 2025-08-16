@@ -166,13 +166,18 @@ namespace BeastVault.Api.Infrastructure.Services
                 return;
             }
 
-            // Parse the Pokemon file and save to storage
-            var parseResult = await _parser.ParseAsync(fileBytes, fileName, _storage);
+            // Parse the Pokemon file WITHOUT creating a duplicate
+            // Since this is a file scan, we want to register the existing file location
+            var parseResult = await _parser.ParseAsync(fileBytes, fileName, null);
             if (parseResult == null)
             {
                 result.Errors.Add($"{fileName}: Failed to parse Pokemon file");
                 return;
             }
+
+            // Set the original file path as the stored path
+            parseResult.File.StoredPath = filePath;
+            parseResult.File.RawBlob = fileBytes;
 
             // Save to database
             _context.Files.Add(parseResult.File);
