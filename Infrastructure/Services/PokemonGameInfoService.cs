@@ -11,7 +11,7 @@ namespace BeastVault.Api.Infrastructure.Services;
 public static class PokemonGameInfoService
 {
     /// <summary>
-    /// Get all games by generation
+    /// Get all games by generation (based on PKHeX GameVersion enum)
     /// </summary>
     public static IEnumerable<GameInfoDomain> GetGamesByGeneration(int generation)
     {
@@ -19,67 +19,180 @@ public static class PokemonGameInfoService
         {
             1 => new[]
             {
-                new GameInfoDomain(1, "Red", 1),
-                new GameInfoDomain(2, "Blue", 1),
-                new GameInfoDomain(3, "Yellow", 1)
+                new GameInfoDomain(35, "Red (VC)", 1),        // RD Virtual Console
+                new GameInfoDomain(36, "Green/Blue (VC)", 1), // GN Virtual Console  
+                new GameInfoDomain(37, "Blue (VC)", 1),       // BU Virtual Console
+                new GameInfoDomain(38, "Yellow (VC)", 1)      // YW Virtual Console
             },
             2 => new[]
             {
-                new GameInfoDomain(4, "Gold", 2),
-                new GameInfoDomain(5, "Silver", 2),
-                new GameInfoDomain(7, "Crystal", 2)
+                new GameInfoDomain(39, "Gold (VC)", 2),       // GD Virtual Console
+                new GameInfoDomain(40, "Silver (VC)", 2),     // SI Virtual Console
+                new GameInfoDomain(41, "Crystal (VC)", 2)     // C Virtual Console
             },
             3 => new[]
             {
-                new GameInfoDomain(8, "Ruby", 3),
-                new GameInfoDomain(9, "Sapphire", 3),
-                new GameInfoDomain(10, "Emerald", 3),
-                new GameInfoDomain(11, "FireRed", 3),
-                new GameInfoDomain(12, "LeafGreen", 3)
+                new GameInfoDomain(1, "Sapphire", 3),         // S
+                new GameInfoDomain(2, "Ruby", 3),             // R
+                new GameInfoDomain(3, "Emerald", 3),          // E
+                new GameInfoDomain(4, "FireRed", 3),          // FR
+                new GameInfoDomain(5, "LeafGreen", 3),        // LG
+                new GameInfoDomain(15, "Colosseum/XD", 3)     // CXD
             },
             4 => new[]
             {
-                new GameInfoDomain(13, "Diamond", 4),
-                new GameInfoDomain(14, "Pearl", 4),
-                new GameInfoDomain(15, "Platinum", 4),
-                new GameInfoDomain(16, "HeartGold", 4),
-                new GameInfoDomain(17, "SoulSilver", 4)
+                new GameInfoDomain(10, "Diamond", 4),         // D
+                new GameInfoDomain(11, "Pearl", 4),           // P
+                new GameInfoDomain(12, "Platinum", 4),        // Pt
+                new GameInfoDomain(7, "HeartGold", 4),        // HG
+                new GameInfoDomain(8, "SoulSilver", 4),       // SS
+                new GameInfoDomain(16, "Battle Revolution", 4) // BATREV
             },
             5 => new[]
             {
-                new GameInfoDomain(18, "Black", 5),
-                new GameInfoDomain(19, "White", 5),
-                new GameInfoDomain(20, "Black2", 5),
-                new GameInfoDomain(21, "White2", 5)
+                new GameInfoDomain(20, "White", 5),           // W
+                new GameInfoDomain(21, "Black", 5),           // B
+                new GameInfoDomain(22, "White 2", 5),         // W2
+                new GameInfoDomain(23, "Black 2", 5)          // B2
             },
             6 => new[]
             {
-                new GameInfoDomain(24, "X", 6),
-                new GameInfoDomain(25, "Y", 6),
-                new GameInfoDomain(26, "OmegaRuby", 6),
-                new GameInfoDomain(27, "AlphaSapphire", 6)
+                new GameInfoDomain(24, "X", 6),               // X
+                new GameInfoDomain(25, "Y", 6),               // Y
+                new GameInfoDomain(26, "Alpha Sapphire", 6),  // AS
+                new GameInfoDomain(27, "Omega Ruby", 6)       // OR
             },
             7 => new[]
             {
-                new GameInfoDomain(30, "Sun", 7),
-                new GameInfoDomain(31, "Moon", 7),
-                new GameInfoDomain(32, "UltraSun", 7),
-                new GameInfoDomain(33, "UltraMoon", 7)
+                new GameInfoDomain(30, "Sun", 7),             // SN
+                new GameInfoDomain(31, "Moon", 7),            // MN
+                new GameInfoDomain(32, "Ultra Sun", 7),       // US
+                new GameInfoDomain(33, "Ultra Moon", 7),      // UM
+                new GameInfoDomain(34, "GO", 7),              // GO
+                new GameInfoDomain(42, "Let's Go Pikachu", 7), // GP
+                new GameInfoDomain(43, "Let's Go Eevee", 7)   // GE
             },
             8 => new[]
             {
-                new GameInfoDomain(44, "Sword", 8),
-                new GameInfoDomain(45, "Shield", 8),
-                new GameInfoDomain(48, "Legends Arceus", 8),
-                new GameInfoDomain(49, "Brilliant Diamond", 8),
-                new GameInfoDomain(50, "Shining Pearl", 8)
+                new GameInfoDomain(44, "Sword", 8),           // SW
+                new GameInfoDomain(45, "Shield", 8),          // SH
+                new GameInfoDomain(47, "Legends Arceus", 8),  // PLA
+                new GameInfoDomain(48, "Brilliant Diamond", 8), // BD
+                new GameInfoDomain(49, "Shining Pearl", 8)    // SP
             },
             9 => new[]
             {
-                new GameInfoDomain(51, "Scarlet", 9),
-                new GameInfoDomain(52, "Violet", 9)
+                new GameInfoDomain(50, "Scarlet", 9),         // SL
+                new GameInfoDomain(51, "Violet", 9)           // VL
             },
             _ => Array.Empty<GameInfoDomain>()
+        };
+    }
+
+    /// <summary>
+    /// Get the generation where a specific species was introduced
+    /// </summary>
+    public static int GetSpeciesOriginGeneration(int speciesId)
+    {
+        return speciesId switch
+        {
+            >= 1 and <= 151 => 1,      // Gen 1: Bulbasaur to Mew
+            >= 152 and <= 251 => 2,    // Gen 2: Chikorita to Celebi
+            >= 252 and <= 386 => 3,    // Gen 3: Treecko to Deoxys
+            >= 387 and <= 493 => 4,    // Gen 4: Turtwig to Arceus
+            >= 494 and <= 649 => 5,    // Gen 5: Victini to Genesect
+            >= 650 and <= 721 => 6,    // Gen 6: Chespin to Volcanion
+            >= 722 and <= 809 => 7,    // Gen 7: Rowlet to Melmetal
+            >= 810 and <= 905 => 8,    // Gen 8: Grookey to Enamorus
+            >= 906 and <= 1017 => 9,   // Gen 9: Sprigatito to current
+            _ => 1 // Default fallback
+        };
+    }
+
+    /// <summary>
+    /// Get the generation where a Pokemon was captured, considering both OriginGame and file format
+    /// </summary>
+    public static int GetCapturedGeneration(int originGame, string fileFormat)
+    {
+        // For legacy formats, derive generation from file format instead of OriginGame
+        // because PKHeX assigns default/incorrect OriginGame values for old formats
+        var formatGeneration = GetGenerationFromFileFormat(fileFormat);
+        
+        // If file format indicates a legacy generation, trust that over OriginGame
+        if (formatGeneration <= 3)
+        {
+            return formatGeneration;
+        }
+        
+        // For modern formats (Gen 4+), use OriginGame as it's more reliable
+        return GetGameGeneration(originGame);
+    }
+
+    /// <summary>
+    /// Get generation based on file format
+    /// </summary>
+    private static int GetGenerationFromFileFormat(string format)
+    {
+        return format.ToLower() switch
+        {
+            "pk1" => 1,
+            "pk2" => 2, 
+            "pk3" => 3,
+            "pk4" => 4,
+            "pk5" => 5,
+            "pk6" => 6,
+            "pk7" or "pb7" => 7,
+            "pk8" or "pb8" => 8,
+            "pk9" => 9,
+            _ => 1 // Default fallback
+        };
+    }
+
+    /// <summary>
+    /// Get the generation of a game based on its ID (PKM file OriginGame field)
+    /// Based on actual values stored in PKM files, not PKHeX enum values
+    /// </summary>
+    public static int GetGameGeneration(int gameId)
+    {
+        return gameId switch
+        {
+            // Generation 1 (Red/Blue/Yellow)
+            1 or 2 or 3 => 1,
+            
+            // Generation 2 (Gold/Silver/Crystal) 
+            4 or 5 or 7 => 2,
+            
+            // Generation 3 (Ruby/Sapphire/Emerald/FireRed/LeafGreen)
+            8 or 9 or 10 or 11 or 12 or 15 => 3,
+            
+            // Generation 4 (Diamond/Pearl/Platinum/HeartGold/SoulSilver)
+            13 or 14 or 15 or 16 or 17 => 4,
+            
+            // Generation 5 (Black/White/Black2/White2)
+            18 or 19 or 20 or 21 => 5,
+            
+            // Generation 6 (X/Y/OmegaRuby/AlphaSapphire)
+            24 or 25 or 26 or 27 => 6,
+            
+            // Generation 7 (Sun/Moon/UltraSun/UltraMoon/Let's Go)
+            30 or 31 or 32 or 33 or 42 or 43 => 7,
+            
+            // Generation 8 (Sword/Shield/BDSP/Legends Arceus)
+            44 or 45 or 48 or 49 => 8,
+            
+            // Generation 9 (Scarlet/Violet)
+            50 or 51 or 52 or 53 => 9,  // 50=Scarlet, 51=Violet, 52-53 might be DLC
+            
+            // Virtual Console games (map to their original generation)
+            35 or 36 or 37 or 38 => 1,  // VC Gen1
+            39 or 40 or 41 => 2,        // VC Gen2
+            
+            // Pokemon GO
+            34 => 7,
+            
+            // Fallback for unknown values
+            _ when gameId >= 54 => 9,   // Future Gen 9 DLC
+            _ => 1                      // Very old/unknown values default to Gen 1
         };
     }
 
