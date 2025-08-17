@@ -3,16 +3,16 @@
 - BEAST VAULT API - TypeScript Interfaces
 -
 - Este archivo contiene TODAS las interfaces TypeScript para el fronte// Filtros de generación
-/** Filtrar por generación donde la especie fue introducida (ej: Rowlet = 7) */
-originGeneration?: number;
-/** Filtrar por generación donde fue capturado (ej: Rowlet en SV = 9) */
-capturedGeneration?: number; que corresponden exactamente a los endpoints y DTOs de la API de Beast /** Clave para identificar el sprite (especie+forma+shiny) */
-spriteKey: string;
-/** Generación donde la especie fue introducida por primera vez (campo calculado) */
-originGeneration: number;
-/** Generación donde este Pokémon específico fue capturado/obtenido (campo calculado) */
-capturedGeneration: number;
-}lt.
+  /** Filtrar por generación donde la especie fue introducida (ej: Rowlet = 7) \*/
+  originGeneration?: number;
+  /** Filtrar por generación donde fue capturado (ej: Rowlet en SV = 9) _/
+  capturedGeneration?: number; que corresponden exactamente a los endpoints y DTOs de la API de Beast /\*\* Clave para identificar el sprite (especie+forma+shiny) _/
+  spriteKey: string;
+  /** Generación donde la especie fue introducida por primera vez (campo calculado) \*/
+  originGeneration: number;
+  /** Generación donde este Pokémon específico fue capturado/obtenido (campo calculado) \*/
+  capturedGeneration: number;
+  }lt.
 -
 - Generado automáticamente el: 17 de Agosto, 2025
 -
@@ -211,6 +211,10 @@ ballId: number;
 teraType?: number;
 /\*\* Clave para identificar el sprite (especie+forma+shiny) _/
 spriteKey: string;
+/** Generación de origen del Pokémon (calculado del juego de origen) \*/
+originGeneration: number;
+/** Generación en la que fue capturado (calculado del formato de archivo) \*/
+capturedGeneration: number;
 }
 
 export interface StatsDto {
