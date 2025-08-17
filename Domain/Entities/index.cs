@@ -50,6 +50,8 @@ namespace BeastVault.Api.Domain.Entities
         public int CurrentFriendship { get; set; }
         public int Form { get; set; } = 0; // Alternative form
         public uint FormArgument { get; set; } = 0; // Form-specific data
+        public int DynamaxLevel { get; set; } = 0; // Dynamax Level (0-10)
+        public bool CanGigantamax { get; set; } = false; // Gigantamax Flag
         public bool IsEgg { get; set; } = false;
         public bool FatefulEncounter { get; set; } = false;
         public int EggLocation { get; set; } = 0;

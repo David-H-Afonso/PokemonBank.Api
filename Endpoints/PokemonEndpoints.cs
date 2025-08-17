@@ -205,7 +205,7 @@ namespace BeastVault.Api.Endpoints
                     {
                         Id = pf.Pokemon.Id,
                         SpeciesId = pf.Pokemon.SpeciesId,
-                        Form = pf.Pokemon.Form,
+                        Form = PokemonFormService.GetDisplayForm(pf.Pokemon, pf.File.Format),
                         Nickname = pf.Pokemon.Nickname,
                         Level = pf.Pokemon.Level,
                         IsShiny = pf.Pokemon.IsShiny,
@@ -213,7 +213,9 @@ namespace BeastVault.Api.Endpoints
                         TeraType = pf.Pokemon.TeraType,
                         SpriteKey = pf.Pokemon.SpriteKey,
                         OriginGeneration = PokemonGameInfoService.GetSpeciesOriginGeneration(pf.Pokemon.SpeciesId),
-                        CapturedGeneration = PokemonGameInfoService.GetCapturedGeneration(pf.Pokemon.OriginGame, pf.File.Format)
+                        CapturedGeneration = PokemonGameInfoService.GetCapturedGeneration(pf.Pokemon.OriginGame, pf.File.Format),
+                        CanGigantamax = pf.Pokemon.CanGigantamax,
+                        HasMegaStone = PokemonFormService.CheckHasMegaStone(pf.Pokemon)
                     })
                     .ToListAsync();
 

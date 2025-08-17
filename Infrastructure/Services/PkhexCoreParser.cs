@@ -140,6 +140,8 @@ namespace BeastVault.Api.Infrastructure.Services
                     CurrentFriendship = GetProp<int>("CurrentFriendship"),
                     Form = form,
                     FormArgument = formArg,
+                    DynamaxLevel = GetProp<int>("DynamaxLevel"),
+                    CanGigantamax = GetProp<bool>("CanGigantamax"),
                     IsEgg = GetProp<bool>("IsEgg"),
                     FatefulEncounter = GetProp<bool>("FatefulEncounter"),
                     EggLocation = GetProp<int>("EggLocation"),

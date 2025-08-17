@@ -145,6 +145,16 @@ namespace BeastVault.Api.Contracts
         /// Generation where this specific Pokemon was caught/obtained (calculated field)
         /// </summary>
         public int CapturedGeneration { get; init; }
+
+        /// <summary>
+        /// Whether this Pokemon can Gigantamax (Gen 8+ files only)
+        /// </summary>
+        public bool CanGigantamax { get; init; }
+
+        /// <summary>
+        /// Whether this Pokemon has a Mega Stone equipped (affects form display)
+        /// </summary>
+        public bool HasMegaStone { get; init; }
     }
 
     /// <summary>
