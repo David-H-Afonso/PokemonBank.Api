@@ -260,15 +260,40 @@ namespace BeastVault.Api.Endpoints
                     new { Id = 17, Name = "Fairy" }
                 };
                 var generations = Enumerable.Range(1, 9).Select(g => new { Id = g, Name = $"Generation {g}" }).ToList();
+                
+                // Temporarily disabled filters (not working properly):
+                // - Gender filter
+                // - Form filter  
+                // - Held item filter
+                /*
                 var genders = new[]
                 {
                     new { Id = 0, Name = "Unknown" },
                     new { Id = 1, Name = "Male" },
                     new { Id = 2, Name = "Female" }
                 };
-                var sortFields = Enum.GetValues<PokemonSortField>()
-                    .Select(f => new { Name = f.ToString(), Value = (int)f })
-                    .ToList();
+                */
+
+                // Only working sort fields (disabled problematic ones)
+                var workingSortFields = new[]
+                {
+                    new { Name = "Id", Value = (int)PokemonSortField.Id },
+                    new { Name = "PokedexNumber", Value = (int)PokemonSortField.PokedexNumber },
+                    new { Name = "Nickname", Value = (int)PokemonSortField.Nickname },
+                    new { Name = "Level", Value = (int)PokemonSortField.Level },
+                    new { Name = "Pokeball", Value = (int)PokemonSortField.Pokeball }
+                };
+
+                // Temporarily disabled sort fields (not working properly):
+                // - SpeciesName: Requires PKHeX species resolution
+                // - OriginGeneration: Complex generation mapping issues
+                // - CapturedGeneration: Complex generation mapping issues  
+                // - Gender: Database type conversion issues
+                // - IsShiny: Boolean to int conversion issues
+                // - Form: Field mapping issues
+                // - CreatedAt: No actual CreatedAt field in database
+                // - Favorite: Boolean to int conversion issues
+
                 var typeFilterModes = Enum.GetValues<TypeFilterMode>()
                     .Select(m => new { Name = m.ToString(), Value = (int)m })
                     .ToList();
@@ -279,8 +304,8 @@ namespace BeastVault.Api.Endpoints
                     Generations = generations,
                     OriginGenerations = generations,
                     CapturedGenerations = generations,
-                    Genders = genders,
-                    SortFields = sortFields,
+                    // Genders = genders, // Temporarily disabled
+                    SortFields = workingSortFields, // Only working sort fields
                     TypeFilterModes = typeFilterModes,
                     DefaultPageSize = 50,
                     MaxPageSize = 500

@@ -34,19 +34,22 @@ export enum TypeFilterMode {
 }
 
 export enum PokemonSortField {
+  // Working sort fields (available in metadata)
   Id = 0,
   PokedexNumber = 1,
-  SpeciesName = 2,
   Nickname = 3,
   Level = 4,
-  OriginGeneration = 5,
-  CapturedGeneration = 6,
   Pokeball = 7,
-  Gender = 8,
-  IsShiny = 9,
-  Form = 10,
-  CreatedAt = 11,
-  Favorite = 12
+  
+  // Temporarily disabled sort fields (not in metadata, needs fixes)
+  SpeciesName = 2,          // Requires PKHeX species name resolution
+  OriginGeneration = 5,     // Complex generation mapping issues
+  CapturedGeneration = 6,   // Complex generation mapping issues
+  Gender = 8,               // Database type conversion issues
+  IsShiny = 9,              // Boolean to int conversion issues
+  Form = 10,                // Field mapping issues
+  CreatedAt = 11,           // No actual CreatedAt field in database
+  Favorite = 12             // Boolean to int conversion issues
 }
 
 export enum SortDirection {
@@ -375,8 +378,10 @@ export interface TypeFilterModeInfo {
 export interface PokemonMetadata {
   types: TypeInfo[];
   generations: number[];
-  genders: GenderInfo[];
-  sortFields: SortFieldInfo[];
+  originGenerations: number[];
+  capturedGenerations: number[];
+  // genders: GenderInfo[]; // Temporarily disabled - gender filtering not working
+  sortFields: SortFieldInfo[]; // Only working sort fields included
   typeFilterModes: TypeFilterModeInfo[];
   defaultPageSize: number;
   maxPageSize: number;
