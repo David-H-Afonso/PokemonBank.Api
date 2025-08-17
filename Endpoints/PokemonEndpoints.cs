@@ -188,99 +188,76 @@ namespace BeastVault.Api.Endpoints
 
             // ...resto de endpoints (get, patch, etc.)...
 
-            // Modern advanced Pokemon query endpoint
-            app.MapGet("/pokemon/advanced", async (AppDbContext db, [AsParameters] AdvancedPokemonQuery q) =>
+            // Main Pokemon query endpoint with advanced filtering, sorting and pagination
+            app.MapGet("/pokemon", async (AppDbContext db, [AsParameters] AdvancedPokemonQuery q) =>
             {
                 var baseQuery = db.Pokemon.AsNoTracking().AsQueryable();
-                
+
                 // Apply advanced filtering and sorting
                 var query = PokemonQueryService.BuildQuery(baseQuery, q);
-                
+
                 var total = await query.CountAsync();
                 var items = await query
                     .Skip(q.Skip)
                     .Take(q.Take)
-                    .Select(p => new PokemonListItemDto
+                    .Join(db.Files, p => p.FileId, f => f.Id, (p, f) => new { Pokemon = p, File = f })
+                    .Select(pf => new PokemonListItemDto
                     {
-                        Id = p.Id,
-                        SpeciesId = p.SpeciesId,
-                        Form = p.Form,
-                        Nickname = p.Nickname,
-                        Level = p.Level,
-                        IsShiny = p.IsShiny,
-                        BallId = p.BallId,
-                        TeraType = p.TeraType,
-                        SpriteKey = p.SpriteKey
+                        Id = pf.Pokemon.Id,
+                        SpeciesId = pf.Pokemon.SpeciesId,
+                        Form = pf.Pokemon.Form,
+                        Nickname = pf.Pokemon.Nickname,
+                        Level = pf.Pokemon.Level,
+                        IsShiny = pf.Pokemon.IsShiny,
+                        BallId = pf.Pokemon.BallId,
+                        TeraType = pf.Pokemon.TeraType,
+                        SpriteKey = pf.Pokemon.SpriteKey,
+                        OriginGeneration = PokemonGameInfoService.GetSpeciesOriginGeneration(pf.Pokemon.SpeciesId),
+                        CapturedGeneration = PokemonGameInfoService.GetCapturedGeneration(pf.Pokemon.OriginGame, pf.File.Format)
                     })
                     .ToListAsync();
 
                 // Get query statistics for monitoring
                 var stats = PokemonQueryService.GetQueryStats(q);
 
-                return Results.Ok(new 
-                { 
-                    Items = items, 
+                return Results.Ok(new
+                {
+                    Items = items,
                     Total = total,
                     Stats = stats
                 });
             })
-            .WithName("GetAdvancedPokemonList")
+            .WithName("GetPokemonList")
             .WithSummary("Get Pokemon with advanced filtering, sorting and pagination")
-            .WithDescription("Advanced endpoint with comprehensive filtering by types, generations, stats, and flexible sorting options.")
+            .WithDescription("Main endpoint with comprehensive filtering by types, generations, stats, and flexible sorting options.")
             .WithTags("Pokemon")
             .Produces<object>(200);
-
-            // Legacy Pokemon endpoint (for backward compatibility)
-            app.MapGet("/pokemon", async (AppDbContext db, [AsParameters] PokemonQuery q) =>
-            {
-                var query = db.Pokemon.AsNoTracking().AsQueryable();
-                if (!string.IsNullOrWhiteSpace(q.Search))
-                    query = query.Where(p => (p.Nickname ?? "").Contains(q.Search) || p.OtName.Contains(q.Search));
-                if (q.SpeciesId.HasValue)
-                    query = query.Where(p => p.SpeciesId == q.SpeciesId);
-                if (q.Form.HasValue)
-                    query = query.Where(p => p.Form == q.Form);
-                if (q.IsShiny.HasValue)
-                    query = query.Where(p => p.IsShiny == q.IsShiny);
-                if (q.BallId.HasValue)
-                    query = query.Where(p => p.BallId == q.BallId);
-                if (q.OriginGame.HasValue)
-                    query = query.Where(p => p.OriginGame == q.OriginGame);
-                if (q.TeraType.HasValue)
-                    query = query.Where(p => p.TeraType == q.TeraType);
-
-                var total = await query.CountAsync();
-                var items = await query
-                    .OrderByDescending(p => p.Id)
-                    .Skip(q.Skip)
-                    .Take(q.Take)
-                    .Select(p => new PokemonListItemDto
-                    {
-                        Id = p.Id,
-                        SpeciesId = p.SpeciesId,
-                        Form = p.Form,
-                        Nickname = p.Nickname,
-                        Level = p.Level,
-                        IsShiny = p.IsShiny,
-                        BallId = p.BallId,
-                        TeraType = p.TeraType,
-                        SpriteKey = p.SpriteKey
-                    })
-                    .ToListAsync();
-
-                return Results.Ok(new PagedResult<PokemonListItemDto>(items, total));
-            })
-            .WithName("GetPokemonList")
-            .WithSummary("Get a paginated list of Pokémon (Legacy)")
-            .WithDescription("Legacy endpoint for backward compatibility. Use /pokemon/advanced for more features.")
-            .WithTags("Pokemon", "Legacy")
-            .Produces<PagedResult<PokemonListItemDto>>(200);
 
             // Metadata endpoint for frontend helpers
             app.MapGet("/pokemon/metadata", () =>
             {
-                var types = PokemonGameInfoService.GetAllTypes().ToList();
-                var generations = Enumerable.Range(1, 9).ToList();
+                var types = new[]
+                {
+                    new { Id = 0, Name = "Normal" },
+                    new { Id = 1, Name = "Fighting" },
+                    new { Id = 2, Name = "Flying" },
+                    new { Id = 3, Name = "Poison" },
+                    new { Id = 4, Name = "Ground" },
+                    new { Id = 5, Name = "Rock" },
+                    new { Id = 6, Name = "Bug" },
+                    new { Id = 7, Name = "Ghost" },
+                    new { Id = 8, Name = "Steel" },
+                    new { Id = 9, Name = "Fire" },
+                    new { Id = 10, Name = "Water" },
+                    new { Id = 11, Name = "Grass" },
+                    new { Id = 12, Name = "Electric" },
+                    new { Id = 13, Name = "Psychic" },
+                    new { Id = 14, Name = "Ice" },
+                    new { Id = 15, Name = "Dragon" },
+                    new { Id = 16, Name = "Dark" },
+                    new { Id = 17, Name = "Fairy" }
+                };
+                var generations = Enumerable.Range(1, 9).Select(g => new { Id = g, Name = $"Generation {g}" }).ToList();
                 var genders = new[]
                 {
                     new { Id = 0, Name = "Unknown" },
@@ -298,6 +275,8 @@ namespace BeastVault.Api.Endpoints
                 {
                     Types = types,
                     Generations = generations,
+                    OriginGenerations = generations,
+                    CapturedGenerations = generations,
                     Genders = genders,
                     SortFields = sortFields,
                     TypeFilterModes = typeFilterModes,
@@ -386,6 +365,29 @@ namespace BeastVault.Api.Endpoints
             .WithTags("Pokemon", "Comparison")
             .Produces<object>(200)
             .Produces(404);
+
+            // Debug endpoint to check OriginGame values
+            app.MapGet("/debug/origin-games", async (AppDbContext db) =>
+            {
+                var uniqueOriginGames = await db.Pokemon
+                    .Select(p => new { p.OriginGame, p.SpeciesId })
+                    .Distinct()
+                    .OrderBy(x => x.OriginGame)
+                    .Take(20)
+                    .ToListAsync();
+
+                var results = uniqueOriginGames.Select(x => new
+                {
+                    OriginGame = x.OriginGame,
+                    SpeciesId = x.SpeciesId,
+                    CalculatedGeneration = PokemonGameInfoService.GetGameGeneration(x.OriginGame),
+                    SpeciesOriginGeneration = PokemonGameInfoService.GetSpeciesOriginGeneration(x.SpeciesId)
+                });
+
+                return Results.Ok(results);
+            })
+            .WithName("DebugOriginGames")
+            .WithTags("Debug");
 
             return app;
         }
