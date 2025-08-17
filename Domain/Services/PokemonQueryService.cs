@@ -42,11 +42,10 @@ public static class PokemonQueryService
             specifications.Add(new TextSearchSpecification(query.Search));
         }
 
-        // Pokedex number (with legacy support)
-        var pokedexNumber = query.PokedexNumber ?? query.SpeciesId;
-        if (pokedexNumber.HasValue)
+        // Pokedex number 
+        if (query.PokedexNumber.HasValue)
         {
-            specifications.Add(new PokedexNumberSpecification(pokedexNumber.Value));
+            specifications.Add(new PokedexNumberSpecification(query.PokedexNumber.Value));
         }
 
         // Species name
@@ -91,11 +90,10 @@ public static class PokemonQueryService
             specifications.Add(new CapturedGenerationSpecification(query.CapturedGeneration.Value));
         }
 
-        // Pokeball (with legacy support)
-        var ballId = query.PokeballId ?? query.BallId;
-        if (ballId.HasValue)
+        // Pokeball
+        if (query.PokeballId.HasValue)
         {
-            specifications.Add(new PokeballSpecification(ballId.Value));
+            specifications.Add(new PokeballSpecification(query.PokeballId.Value));
         }
 
         // Type filtering

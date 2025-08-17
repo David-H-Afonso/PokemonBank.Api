@@ -50,12 +50,14 @@ public record AdvancedPokemonQuery
     #region Generation Filters
 
     /// <summary>
-    /// Filter by origin generation (game where Pokemon originated)
+    /// Filter by origin generation (generation where species was first introduced)
+    /// Example: Rowlet is from generation 7 (Alola)
     /// </summary>
     public int? OriginGeneration { get; init; }
 
     /// <summary>
-    /// Filter by captured generation (generation where species was introduced)
+    /// Filter by captured generation (generation where Pokemon was caught/obtained)
+    /// Example: Rowlet caught in Scarlet/Violet would be generation 9
     /// </summary>
     public int? CapturedGeneration { get; init; }
 
@@ -90,12 +92,12 @@ public record AdvancedPokemonQuery
     /// <summary>
     /// Type filter mode (how to apply type filters)
     /// </summary>
-    public TypeFilterMode TypeFilterMode { get; init; } = TypeFilterMode.HasAnyType;
+    public TypeFilterMode? TypeFilterMode { get; init; }
 
     /// <summary>
     /// Whether to enforce exact type order for dual-type filtering
     /// </summary>
-    public bool EnforceTypeOrder { get; init; } = false;
+    public bool? EnforceTypeOrder { get; init; }
 
     #endregion
 
@@ -120,12 +122,12 @@ public record AdvancedPokemonQuery
     /// <summary>
     /// Primary sort field
     /// </summary>
-    public PokemonSortField SortBy { get; init; } = PokemonSortField.Id;
+    public PokemonSortField? SortBy { get; init; }
 
     /// <summary>
     /// Primary sort direction
     /// </summary>
-    public SortDirection SortDirection { get; init; } = SortDirection.Descending;
+    public SortDirection? SortDirection { get; init; }
 
     /// <summary>
     /// Secondary sort field (optional)
@@ -135,7 +137,7 @@ public record AdvancedPokemonQuery
     /// <summary>
     /// Secondary sort direction
     /// </summary>
-    public SortDirection ThenSortDirection { get; init; } = SortDirection.Ascending;
+    public SortDirection? ThenSortDirection { get; init; }
 
     #endregion
 
@@ -193,8 +195,8 @@ public record AdvancedPokemonQuery
         {
             PrimaryType = PrimaryType,
             SecondaryType = SecondaryType,
-            Mode = TypeFilterMode,
-            EnforceTypeOrder = EnforceTypeOrder
+            Mode = TypeFilterMode ?? Domain.ValueObjects.TypeFilterMode.HasAnyType,
+            EnforceTypeOrder = EnforceTypeOrder ?? false
         };
     }
 
@@ -205,8 +207,8 @@ public record AdvancedPokemonQuery
     {
         return new PokemonSortOptions
         {
-            SortBy = SortBy,
-            Direction = SortDirection
+            SortBy = SortBy ?? PokemonSortField.Id,
+            Direction = SortDirection ?? Domain.ValueObjects.SortDirection.Descending
         };
     }
 
@@ -221,7 +223,7 @@ public record AdvancedPokemonQuery
         return new PokemonSortOptions
         {
             SortBy = ThenSortBy.Value,
-            Direction = ThenSortDirection
+            Direction = ThenSortDirection ?? Domain.ValueObjects.SortDirection.Ascending
         };
     }
 
