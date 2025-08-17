@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BeastVault.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250817160038_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250817161225_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
