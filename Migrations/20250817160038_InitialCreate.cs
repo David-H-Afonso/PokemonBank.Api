@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BeastVault.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,6 +19,7 @@ namespace BeastVault.Api.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Sha256 = table.Column<string>(type: "TEXT", nullable: false),
                     FileName = table.Column<string>(type: "TEXT", nullable: false),
+                    OriginalFileName = table.Column<string>(type: "TEXT", nullable: true),
                     Format = table.Column<string>(type: "TEXT", nullable: false),
                     Size = table.Column<long>(type: "INTEGER", nullable: false),
                     StoredPath = table.Column<string>(type: "TEXT", nullable: false),
@@ -37,7 +38,8 @@ namespace BeastVault.Api.Migrations
                     PokemonId = table.Column<int>(type: "INTEGER", nullable: false),
                     Slot = table.Column<int>(type: "INTEGER", nullable: false),
                     MoveId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PpUps = table.Column<int>(type: "INTEGER", nullable: false)
+                    PpUps = table.Column<int>(type: "INTEGER", nullable: false),
+                    CurrentPp = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -62,13 +64,52 @@ namespace BeastVault.Api.Migrations
                     AbilityId = table.Column<int>(type: "INTEGER", nullable: false),
                     BallId = table.Column<int>(type: "INTEGER", nullable: false),
                     TeraType = table.Column<int>(type: "INTEGER", nullable: true),
+                    HeldItemId = table.Column<int>(type: "INTEGER", nullable: false),
                     OriginGame = table.Column<int>(type: "INTEGER", nullable: false),
                     Language = table.Column<string>(type: "TEXT", nullable: false),
                     MetDate = table.Column<DateTime>(type: "TEXT", nullable: true),
                     MetLocation = table.Column<string>(type: "TEXT", nullable: true),
                     SpriteKey = table.Column<string>(type: "TEXT", nullable: false),
                     Favorite = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Notes = table.Column<string>(type: "TEXT", nullable: true)
+                    Notes = table.Column<string>(type: "TEXT", nullable: true),
+                    Gender = table.Column<int>(type: "INTEGER", nullable: false),
+                    OTGender = table.Column<int>(type: "INTEGER", nullable: false),
+                    OTLanguage = table.Column<string>(type: "TEXT", nullable: false),
+                    EncryptionConstant = table.Column<uint>(type: "INTEGER", nullable: false),
+                    PersonalityId = table.Column<uint>(type: "INTEGER", nullable: false),
+                    Experience = table.Column<uint>(type: "INTEGER", nullable: false),
+                    CurrentFriendship = table.Column<int>(type: "INTEGER", nullable: false),
+                    Form = table.Column<int>(type: "INTEGER", nullable: false),
+                    FormArgument = table.Column<uint>(type: "INTEGER", nullable: false),
+                    IsEgg = table.Column<bool>(type: "INTEGER", nullable: false),
+                    FatefulEncounter = table.Column<bool>(type: "INTEGER", nullable: false),
+                    EggLocation = table.Column<int>(type: "INTEGER", nullable: false),
+                    EggMetDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    HeightScalar = table.Column<int>(type: "INTEGER", nullable: false),
+                    WeightScalar = table.Column<int>(type: "INTEGER", nullable: false),
+                    Scale = table.Column<int>(type: "INTEGER", nullable: false),
+                    PokerusState = table.Column<int>(type: "INTEGER", nullable: false),
+                    PokerusDays = table.Column<int>(type: "INTEGER", nullable: false),
+                    PokerusStrain = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContestCool = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContestBeauty = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContestCute = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContestSmart = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContestTough = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContestSheen = table.Column<int>(type: "INTEGER", nullable: false),
+                    CurrentHandler = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerName = table.Column<string>(type: "TEXT", nullable: false),
+                    HandlingTrainerGender = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerLanguage = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerFriendship = table.Column<int>(type: "INTEGER", nullable: false),
+                    OriginalTrainerMemory = table.Column<int>(type: "INTEGER", nullable: false),
+                    OriginalTrainerMemoryIntensity = table.Column<int>(type: "INTEGER", nullable: false),
+                    OriginalTrainerMemoryFeeling = table.Column<int>(type: "INTEGER", nullable: false),
+                    OriginalTrainerMemoryVariable = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerMemory = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerMemoryIntensity = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerMemoryFeeling = table.Column<int>(type: "INTEGER", nullable: false),
+                    HandlingTrainerMemoryVariable = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -85,6 +126,19 @@ namespace BeastVault.Api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PokemonTags", x => new { x.PokemonId, x.TagId });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RelearnMoves",
+                columns: table => new
+                {
+                    PokemonId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Slot = table.Column<int>(type: "INTEGER", nullable: false),
+                    MoveId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RelearnMoves", x => new { x.PokemonId, x.Slot });
                 });
 
             migrationBuilder.CreateTable(
@@ -110,7 +164,14 @@ namespace BeastVault.Api.Migrations
                     HyperTrainedDef = table.Column<bool>(type: "INTEGER", nullable: false),
                     HyperTrainedSpa = table.Column<bool>(type: "INTEGER", nullable: false),
                     HyperTrainedSpd = table.Column<bool>(type: "INTEGER", nullable: false),
-                    HyperTrainedSpe = table.Column<bool>(type: "INTEGER", nullable: false)
+                    HyperTrainedSpe = table.Column<bool>(type: "INTEGER", nullable: false),
+                    StatHp = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatAtk = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatDef = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatSpa = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatSpd = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatSpe = table.Column<int>(type: "INTEGER", nullable: false),
+                    StatHpCurrent = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -161,6 +222,9 @@ namespace BeastVault.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "PokemonTags");
+
+            migrationBuilder.DropTable(
+                name: "RelearnMoves");
 
             migrationBuilder.DropTable(
                 name: "Stats");
