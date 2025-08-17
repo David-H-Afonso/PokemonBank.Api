@@ -23,7 +23,7 @@ public class PokedexNumberSpecification : IPokemonSpecification
 }
 
 /// <summary>
-/// Specification for filtering Pokemon by origin generation
+/// Specification for filtering Pokemon by origin generation (when species was introduced)
 /// </summary>
 public class OriginGenerationSpecification : IPokemonSpecification
 {
@@ -36,14 +36,13 @@ public class OriginGenerationSpecification : IPokemonSpecification
 
     public IQueryable<PokemonEntity> Apply(IQueryable<PokemonEntity> query)
     {
-        var games = PokemonGameInfoService.GetGamesByGeneration(_generation);
-        var gameIds = games.Select(g => g.GameId).ToList();
-        return query.Where(p => gameIds.Contains(p.OriginGame));
+        var speciesInGeneration = PokemonGameInfoService.GetSpeciesInGeneration(_generation);
+        return query.Where(p => speciesInGeneration.Contains(p.SpeciesId));
     }
 }
 
 /// <summary>
-/// Specification for filtering Pokemon by captured generation
+/// Specification for filtering Pokemon by captured generation (when Pokemon was caught)
 /// </summary>
 public class CapturedGenerationSpecification : IPokemonSpecification
 {
@@ -56,8 +55,9 @@ public class CapturedGenerationSpecification : IPokemonSpecification
 
     public IQueryable<PokemonEntity> Apply(IQueryable<PokemonEntity> query)
     {
-        var speciesInGeneration = PokemonGameInfoService.GetSpeciesInGeneration(_generation);
-        return query.Where(p => speciesInGeneration.Contains(p.SpeciesId));
+        var games = PokemonGameInfoService.GetGamesByGeneration(_generation);
+        var gameIds = games.Select(g => g.GameId).ToList();
+        return query.Where(p => gameIds.Contains(p.OriginGame));
     }
 }
 
