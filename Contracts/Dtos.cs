@@ -135,6 +135,16 @@ namespace BeastVault.Api.Contracts
         /// Key to identify the sprite (species+form+shiny)
         /// </summary>
         public string SpriteKey { get; init; } = "";
+
+        /// <summary>
+        /// Generation where the species was first introduced (calculated field)
+        /// </summary>
+        public int OriginGeneration { get; init; }
+
+        /// <summary>
+        /// Generation where this specific Pokemon was caught/obtained (calculated field)
+        /// </summary>
+        public int CapturedGeneration { get; init; }
     }
 
     /// <summary>
